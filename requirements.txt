@@ -1,0 +1,14 @@
+numpy>=1.18
+scipy>=1.4
+scikit-image>=0.16
+scikit-learn>=0.22
+cudatoolkit>=10.2
+torch>=1.6
+torchvision>=0.7
+tensorboard>=2.3
+zlib>=1.2
+libspatialindex>=1.9
+shapely>=1.7
+rtree>=0.9
+trimesh>=3.5
+tqdm>=4.43
