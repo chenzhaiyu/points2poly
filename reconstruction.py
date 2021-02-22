@@ -15,8 +15,11 @@ from source import sdf
 
 logger = get_logger(filepath='reconstruction.log')
 
+dataset_name = 'famous_noisefree'
+
 
 def evaluate(opt=None):
+    global dataset_name
     if not opt:
         class OPT:
             pass
@@ -26,7 +29,7 @@ def evaluate(opt=None):
         opt.indir = 'datasets'
         opt.outdir = 'results'
         opt.modeldir = 'models'
-        opt.dataset = 'helsinki_noise_free/testset.txt'
+        opt.dataset = '{}/testset.txt'.format(dataset_name)
         opt.models = 'p2s_max'
         opt.modelpostfix = '_model_249.pth'
         opt.batchSize = 101
@@ -57,6 +60,7 @@ def evaluate(opt=None):
 
 
 def reconstruct(data_paths):
+    global dataset_name
     complexes = {}
     for filename in glob.glob(data_paths):
         # load planes and bounds from vg data of a (complete) point cloud
@@ -69,12 +73,13 @@ def reconstruct(data_paths):
         cell_complex.construct()
         # cell_complex.visualise()
         cell_complex.save_plm(
-            (Path('results') / 'p2s_max_model_249' / 'helsinki_noise_free/eval/ply_candidates' / Path(filename).name).with_suffix('.plm'), polygonal=True)
+            (Path('results') / 'p2s_max_model_249' / '{}/eval/ply_candidates'.format(dataset_name) / Path(filename).name).with_suffix('.plm'), polygonal=True)
         cell_complex.print_info()
         queries = np.array(cell_complex.cell_centers(mode='centroid'), dtype=np.float32)
 
         # save the query points to 05_query_pts
         save_path = (Path(filename).parent.parent / '05_query_pts' / Path(filename).name).with_suffix('.ply.npy')
+        save_path.parent.mkdir(parents=True, exist_ok=True)
         np.save(save_path, queries)
 
         complexes.update({Path(filename).stem: cell_complex})
@@ -85,7 +90,7 @@ def reconstruct(data_paths):
     # reconstruct from cells
     for name in complexes:
         # find predictions in helsinki_noise_free\eval\eval\{name}
-        npy_path = (Path('results') / 'p2s_max_model_249' / 'helsinki_noise_free/eval/eval/' / name).with_suffix(
+        npy_path = (Path('results') / 'p2s_max_model_249' / '{}/eval/eval/'.format(dataset_name) / name).with_suffix(
             '.xyz.npy')
         npy_data = np.load(npy_path)
         indices_interior = np.where(npy_data > 0)[0]
@@ -94,4 +99,4 @@ def reconstruct(data_paths):
 
 
 if __name__ == '__main__':
-    reconstruct(data_paths='datasets/helsinki_noise_free/06_vertex_group/*.vg')
+    reconstruct(data_paths='datasets/{}/06_vertex_group/*.vg'.format(dataset_name))

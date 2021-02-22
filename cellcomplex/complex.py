@@ -306,6 +306,9 @@ class CellComplex:
         :param polygonal: merge coplanar triangular faces into polygonal ones if set True.
         """
         if self.constructed:
+            filepath = Path(filepath)
+            filepath.parent.mkdir(parents=True, exist_ok=True)
+
             num_vertices = 0
             shift = 0
             info_vertices = ''
