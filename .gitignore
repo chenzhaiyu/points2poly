@@ -134,3 +134,6 @@ results/
 models/
 logs/
 datasets/
+
+# macOS
+.DS_Store

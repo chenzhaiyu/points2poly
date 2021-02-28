@@ -11,10 +11,10 @@ Prerequisites:
 import numpy as np
 from sklearn.decomposition import PCA
 from tqdm import tqdm
-import trimesh
-from .logger import get_logger
 
-logger = get_logger()
+from .logger import attach_to_log
+
+logger = attach_to_log()
 
 
 class VertexGroup:
@@ -45,7 +45,6 @@ class VertexGroup:
         self.planes, self.bounds = self.get_primitives()
         self.processed = True
 
-    @trimesh.constants.log_time
     def get_points(self, row=1):
         """
         :param row: optional. row number where points are specified. defaults to 1 for .vg.
@@ -54,7 +53,6 @@ class VertexGroup:
         pc = np.fromstring(self.vgroup[row], sep=' ')
         return np.reshape(pc, (-1, 3))
 
-    @trimesh.constants.log_time
     def get_primitives(self):
         """
         :return: plane parameters as N * 4 array and their bounds as N * 2 * 3 array.
@@ -77,7 +75,6 @@ class VertexGroup:
         """
         return np.array([np.amin(points, axis=0), np.amax(points, axis=0)])
 
-    @trimesh.constants.log_time
     def normalise_from_centroid_and_scale(self, centroid, scale, num=None):
         """
         Normalising points. Centroid and scale are provided to be mitigated, which are identical with the return of
@@ -99,7 +96,6 @@ class VertexGroup:
             choice = np.random.choice(self.points.shape[0], num, replace=True)
             self.points = self.points[choice, :]
 
-    @trimesh.constants.log_time
     def normalise_to_centroid_and_scale(self, centroid=(0, 0, 0), scale=1.0, num=None):
         """
         Normalising points to the provided centroid and scale. Notice the difference
@@ -159,7 +155,6 @@ class VertexGroup:
 
         return param
 
-    @trimesh.constants.log_time
     def save_planes_vg(self, filepath, row_pc=1):
         """
         Save (processed) plane params into a vg file.
@@ -175,7 +170,6 @@ class VertexGroup:
         with open(filepath, 'w') as fout:
             fout.writelines(self.vgroup)
 
-    @trimesh.constants.log_time
     def save_planes_txt(self, filepath):
         """
         Save plane params into a txt file.
@@ -185,7 +179,6 @@ class VertexGroup:
             outs = [''.join(str(n) + ' ' for n in line.tolist()) + '\n' for line in self.planes]
             fout.writelines(outs)
 
-    @trimesh.constants.log_time
     def save_planes_npy(self, filepath):
         """
         Save plane params into an npy file.
@@ -193,7 +186,6 @@ class VertexGroup:
         logger.info('writing plane parameters into {}'.format(filepath))
         np.save(filepath, self.planes)
 
-    @trimesh.constants.log_time
     def save_bounds_npy(self, filepath):
         """
         Save plane bounds into an npy file.

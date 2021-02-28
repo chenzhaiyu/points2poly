@@ -7,13 +7,14 @@ import glob
 import numpy as np
 from pathlib import Path
 
-from cellcomplex import VertexGroup, CellComplex, get_logger
+from absp import VertexGroup, CellComplex, AdjacencyGraph
+from absp import attach_to_log
 
 from source import points_to_surf_eval
 from source.base import evaluation
 from source import sdf
 
-logger = get_logger(filepath='reconstruction.log')
+logger = attach_to_log(filepath='reconstruction.log')
 
 dataset_name = 'famous_noisefree'
 
@@ -59,6 +60,10 @@ def evaluate(opt=None):
         points_to_surf_eval.points_to_surf_eval(opt)
 
 
+def sigmoid(x):
+    return 1 / (1 + np.exp(-x))
+
+
 def reconstruct(data_paths):
     global dataset_name
     complexes = {}
@@ -68,14 +73,19 @@ def reconstruct(data_paths):
         planes, bounds = np.array(vertex_group.planes), np.array(vertex_group.bounds)
 
         # construct cell complex and extract the cell centers as query points
-        cell_complex = CellComplex(planes, bounds)
+        cell_complex = CellComplex(planes, bounds, build_graph=True)
         cell_complex.prioritise_planes()
         cell_complex.construct()
         # cell_complex.visualise()
-        cell_complex.save_plm(
-            (Path('results') / 'p2s_max_model_249' / '{}/eval/ply_candidates'.format(dataset_name) / Path(filename).name).with_suffix('.plm'), polygonal=True)
+
+        # save candidate cells
+        save_candidates = False
+        if save_candidates:
+            cell_complex.save_plm(
+                (Path('results') / 'p2s_max_model_249' / '{}/eval/ply_candidates'.format(dataset_name) / Path(filename).name).with_suffix('.plm'))
         cell_complex.print_info()
-        queries = np.array(cell_complex.cell_centers(mode='centroid'), dtype=np.float32)
+
+        queries = np.array(cell_complex.cell_representatives(location='center'), dtype=np.float32)
 
         # save the query points to 05_query_pts
         save_path = (Path(filename).parent.parent / '05_query_pts' / Path(filename).name).with_suffix('.ply.npy')
@@ -93,9 +103,24 @@ def reconstruct(data_paths):
         npy_path = (Path('results') / 'p2s_max_model_249' / '{}/eval/eval/'.format(dataset_name) / name).with_suffix(
             '.xyz.npy')
         npy_data = np.load(npy_path)
-        indices_interior = np.where(npy_data > 0)[0]
-        save_path = (npy_path.parent.parent / 'ply_reconstructed' / name).with_suffix('.ply')
-        complexes[name].save_ply(save_path, indices_cells=indices_interior)
+
+        naive_classification = True
+        if naive_classification:
+            indices_interior = np.where(npy_data > 0)[0]
+            save_path = (npy_path.parent.parent / 'ply_reconstructed' / name).with_suffix('.plm')
+            complexes[name].save_plm(save_path, indices_cells=indices_interior)
+
+        graph_cut = True
+        if graph_cut:
+            adjacency_graph = AdjacencyGraph(complexes[name].graph)
+            weights_dict = adjacency_graph.to_dict(sigmoid(npy_data))
+
+            adjacency_graph.assign_weights_to_cell_links(None)
+            adjacency_graph.assign_weights_to_st_links(weights_dict)
+            _, reachable = adjacency_graph.cut()
+            print('reachable: {}'.format(reachable))
+            save_path = (npy_path.parent.parent / 'ply_reconstructed' / name).with_suffix('.obj')
+            complexes[name].save_obj(save_path, indices_cells=adjacency_graph.to_index(reachable))
 
 
 if __name__ == '__main__':
