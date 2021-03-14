@@ -171,9 +171,9 @@ def get_patch_kdtree(
         query_point, patch_radius, points_per_patch, n_jobs):
 
     if patch_radius <= 0.0:
-        pts_dists_ms, patch_pts_ids = kdtree.query(x=query_point, k=points_per_patch, n_jobs=n_jobs)
+        pts_dists_ms, patch_pts_ids = kdtree.query(x=query_point, k=points_per_patch, workers=n_jobs)
     else:
-        patch_pts_ids = kdtree.query_ball_point(x=query_point, r=patch_radius, n_jobs=n_jobs)
+        patch_pts_ids = kdtree.query_ball_point(x=query_point, r=patch_radius, workers=n_jobs)
     patch_pts_ids = np.array(patch_pts_ids, dtype=np.int32)
     point_count = patch_pts_ids.shape[0]
 

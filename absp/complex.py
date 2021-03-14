@@ -7,21 +7,25 @@ Prerequisites:
 """
 
 from pathlib import Path
-from random import random as random_  # todo: assign mtl to obj
+import itertools
+import heapq
+from copy import copy
+from random import random, choices
 
 import numpy as np
 from tqdm import tqdm
 import networkx as nx
-from sage.all import polytopes, QQ, Polyhedron
+from sage.all import polytopes, QQ, RR, Polyhedron
 
 from .logger import attach_to_log
+from .primitive import VertexGroup
 
 logger = attach_to_log()
 
 
 class CellComplex:
 
-    def __init__(self, planes, bounds, initial_bound=None, build_graph=False):
+    def __init__(self, planes, bounds, points=None, initial_bound=None, build_graph=False):
         """
         :param planes: plana parameters. N * 4 array.
         :param bounds: corresponding bounding box bounds of the planar primitives. N * 2 * 3 array.
@@ -30,6 +34,7 @@ class CellComplex:
         """
         self.bounds = bounds  # numpy.array over RDF
         self.planes = planes  # numpy.array over RDF
+        self.points = points
 
         self.initial_bound = initial_bound if initial_bound else self._pad_bound(
             [np.amin(bounds[:, 0, :], axis=0), np.amax(bounds[:, 1, :], axis=0)],
@@ -52,6 +57,88 @@ class CellComplex:
         """
         return polytopes.cube(
             intervals=[[QQ(self.initial_bound[0][i]), QQ(self.initial_bound[1][i])] for i in range(3)])
+
+    def refine_planes(self, theta=10 * 3.1416 / 180, epsilon=0.005, normalise_normal=False):
+        """
+        Refine planar primitives. First, compute the angle of the supporting planes for each pair of planar primitives.
+        Then, starting from the pair with the smallest angle, test if the following two conditions are met:
+        First, the angle between is lower than a threshold. Second, more than a specified number of points lie on
+        both primitives. Merge the two primitives and fit a new plane if the conditions are satisfied.
+        """
+        if self.points is None:
+            raise ValueError('point coordinates are needed for plane refinement')
+        logger.info('refining planar primitives')
+
+        # shallow copy of the primitives
+        planes = list(copy(self.planes))
+        bounds = list(copy(self.bounds))
+        points = list(copy(self.points))
+
+        # pre-compute cosine of theta
+        theta_cos = np.cos(theta)
+
+        # priority queue storing pairwise planes and their angles
+        priority_queue = []
+
+        # compute angles and save them to the priority queue
+        for i, j in itertools.combinations(range(len(planes)), 2):
+            # no need to normalise as PCA in primitive.py already does it
+            angle_cos = np.abs(np.dot(planes[i][:3], planes[j][:3]))
+            if normalise_normal:
+                angle_cos /= (np.linalg.norm(planes[i][:3]) * np.linalg.norm(planes[j][:3]))
+            heapq.heappush(priority_queue, [-angle_cos, i, j])  # negate to use max-heap
+
+        # indices of planes to be merged
+        to_merge = set()
+
+        while priority_queue:
+            # the pair with smallest angle
+            pair = heapq.heappop(priority_queue)
+
+            if -pair[0] > theta_cos:  # negate back to use max-heap
+                # distance from the center of a primitive to the supporting plane of the other
+                distance = np.abs(
+                    np.dot((np.array(points[pair[1]]).mean(axis=0) - np.array(points[pair[2]]).mean(axis=0)),
+                           planes[pair[1]][:3]))
+
+                # assume normalised data so that epsilon can be an arbitrary number in (0, 1]
+                if distance < epsilon and pair[1] not in to_merge and pair[2] not in to_merge:
+                    # merge the two planes
+                    points_merged = np.concatenate([points[pair[1]], points[pair[2]]])
+                    planes_merged = VertexGroup.fit_plane(points_merged)
+                    bounds_merged = [np.min([bounds[pair[1]][0], bounds[pair[2]][0]], axis=0).tolist(),
+                                     np.max([bounds[pair[1]][1], bounds[pair[2]][1]], axis=0).tolist()]
+
+                    # update to_merge
+                    to_merge.update({pair[1]})
+                    to_merge.update({pair[2]})
+
+                    # push the merged plane into the heap
+                    for i, p in enumerate(planes):
+                        if i not in to_merge:
+                            angle_cos = np.abs(np.dot(planes_merged[:3], p[:3]))
+                            heapq.heappush(priority_queue, [-angle_cos, i, len(planes)])  # placeholder
+
+                    # update the actual data with the merged ones
+                    points.append(points_merged)
+                    bounds.append(bounds_merged)
+                    planes.append(planes_merged)
+
+            else:
+                # no more possible coplanar pairs can exist in this priority queue
+                break
+
+        # delete the merged pairs
+        for i in sorted(to_merge, reverse=True):
+            del points[i]
+            del bounds[i]
+            del planes[i]
+
+        logger.info('{} pairs of planes merged'.format(len(to_merge)))
+
+        self.planes = np.array(planes)
+        self.bounds = np.array(bounds)
+        self.points = np.array(points, dtype=object)
 
     def prioritise_planes(self):
         """
@@ -107,7 +194,7 @@ class CellComplex:
         :return: indices of existing cells whose bounds intersect with that of the query primitive.
         """
         cells_bounds = np.array(self.cells_bounds)  # easier array manipulation
-        bound = self._pad_bound(bound, padding=0.05)
+        bound = self._pad_bound(bound, padding=0.1)
 
         # intersection with existing cell AABB
         center_query = np.mean(bound, axis=0)  # 3,
@@ -202,9 +289,13 @@ class CellComplex:
                         #   polyhedron intersection. those sliced neighbors connect with both children
 
                         for n, cell in enumerate(cells_neighbours):
-                            if cell_positive.intersection(cell).dim() == 2:  # strictly a face
+
+                            interface_positive = cell_positive.intersection(cell)
+                            interface_negative = cell_negative.intersection(cell)
+
+                            if interface_positive.dim() == 2:  # strictly a face
                                 self.graph.add_edge(self.index_node + 1, list(neighbours)[n])
-                            if cell_negative.intersection(cell).dim() == 2:
+                            if interface_negative.dim() == 2:
                                 self.graph.add_edge(self.index_node + 2, list(neighbours)[n])
 
                     # update cell id
@@ -224,16 +315,32 @@ class CellComplex:
                 del self.cells[index_parent]
                 del self.cells_bounds[index_parent]
 
-                # remove the parent node (and its incident edges) in the graph
+                # remove the parent node (and subsequently its incident edges) in the graph
                 if self.graph is not None:
                     self.graph.remove_node(list(self.graph.nodes)[index_parent])
 
         self.constructed = True
         logger.info('cell complex constructed')
 
-    def visualise(self):
+    def visualise(self, indices_cells=None, temp_dir='./'):
+        """
+        Visualise the cells using trimesh.
+        """
         if self.constructed:
-            raise NotImplementedError
+            import os
+            import string
+            try:
+                import trimesh
+                import pyglet
+            except ImportError:
+                logger.warning('trimesh/pyglet installation not found. skip visualisation')
+                return
+            temp_filename = ''.join(choices(string.ascii_uppercase + string.digits, k=5)) + '.obj'
+            self.save_obj(filepath=temp_dir + temp_filename, indices_cells=indices_cells, use_mtl=True)
+            scene = trimesh.load_mesh(temp_dir + temp_filename)
+            scene.show()
+            os.remove(temp_dir + temp_filename)
+            os.remove(temp_dir + 'colours.mtl')
         else:
             raise RuntimeError('cell complex has not been constructed')
 
@@ -243,9 +350,17 @@ class CellComplex:
         return len(self.cells)
 
     @property
-    def num_plane(self):
+    def num_planes(self):
         # excluding the initial bounding box
         return len(self.planes)
+
+    def volumes(self, engine='Qhull'):
+        # list of volumes
+        if engine == 'Qhull':
+            from scipy.spatial import ConvexHull
+            return [ConvexHull(cell.vertices_list()).volume for cell in self.cells]
+        else:
+            return [RR(cell.volume()) for cell in self.cells]
 
     def cell_representatives(self, location='center'):
         """
@@ -260,7 +375,7 @@ class CellComplex:
             raise ValueError("expected 'mass' or 'centroid' as mode, got {}".format(location))
 
     def print_info(self):
-        logger.info('number of planes: {}'.format(self.num_plane))
+        logger.info('number of planes: {}'.format(self.num_planes))
         logger.info('number of cells: {}'.format(self.num_cells))
 
     def save_npy(self, filepath):
@@ -276,6 +391,35 @@ class CellComplex:
         else:
             raise RuntimeError('cell complex has not been constructed')
 
+    @staticmethod
+    def _obj_str(cells, use_mtl=False):
+        """
+        Convert a list of cells into a string of obj format.
+        """
+        scene = None
+        for cell in cells:
+            scene += cell.render_solid()
+
+        # directly save the obj string from scene.obj() will bring the inverted facets
+        scene_obj = scene.obj_repr(scene.default_render_params())
+        scene_str = ''
+        material_str = ''
+
+        if use_mtl:
+            scene_str += 'mtllib colours.mtl\n'
+
+        for o in range(len(cells)):
+            scene_str += scene_obj[o][0] + '\n'
+
+            if use_mtl:
+                scene_str += scene_obj[o][1] + '\n'
+                material_str += 'newmtl ' + scene_obj[o][1].split()[1] + '\n'
+                material_str += 'Kd {:.3f} {:.3f} {:.3f}\n'.format(random(), random(), random())  # diffuse colour
+
+            scene_str += '\n'.join(scene_obj[o][2]) + '\n'
+            scene_str += '\n'.join(scene_obj[o][3]) + '\n'  # contents[o][4] are the interior facets
+        return scene_str, material_str
+
     def save_obj(self, filepath, indices_cells=None, use_mtl=False):
         """
         Save polygon soup of indexed convexes to an obj file.
@@ -287,24 +431,15 @@ class CellComplex:
             # create the dir if not exists
             filepath = Path(filepath)
             filepath.parent.mkdir(parents=True, exist_ok=True)
-            scene = None
 
             cells = [self.cells[i] for i in indices_cells] if indices_cells is not None else self.cells
-
-            for cell in cells:
-                scene += cell.render_solid()
+            scene_str, material_str = self._obj_str(cells, use_mtl=use_mtl)
 
             with open(filepath, 'w') as f:
-                # directly save the obj string from scene.obj() will bring the inverted facets
-                scene_obj = scene.obj_repr(scene.default_render_params())
-                scene_str = ''
-                for o in range(len(cells)):
-                    scene_str += scene_obj[o][0] + '\n'
-                    if use_mtl:
-                        scene_str + scene_obj[o][1] + '\n'
-                    scene_str += '\n'.join(scene_obj[o][2]) + '\n'
-                    scene_str += '\n'.join(scene_obj[o][3]) + '\n'  # contents[o][4] are the interior facets
                 f.writelines(scene_str)
+            if use_mtl:
+                with open(filepath.with_name('colours.mtl'), 'w') as f:
+                    f.writelines(material_str)
         else:
             raise RuntimeError('cell complex has not been constructed')
 
@@ -315,6 +450,10 @@ class CellComplex:
         :param indices_cells: indices of cells to save.
         """
         if self.constructed:
+            # create the dir if not exists
+            filepath = Path(filepath)
+            filepath.parent.mkdir(parents=True, exist_ok=True)
+
             num_vertices = 0
             info_vertices = ''
             info_facets = ''

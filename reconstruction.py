@@ -16,7 +16,7 @@ from source import sdf
 
 logger = attach_to_log(filepath='reconstruction.log')
 
-dataset_name = 'famous_noisefree'
+dataset_name = 'helsinki_noise_free'
 
 
 def evaluate(opt=None):
@@ -50,7 +50,7 @@ def evaluate(opt=None):
     if not isinstance(datasets, list):
         datasets = [datasets]
     for dataset in datasets:
-        print(f'Evaluating on dataset {dataset}')
+        print('evaluating on dataset {}'.format(dataset))
         opt.indir = os.path.join(indir_root, os.path.dirname(dataset))
         opt.outdir = os.path.join(outdir_root, os.path.dirname(dataset))
         opt.dataset = os.path.basename(dataset)
@@ -70,10 +70,11 @@ def reconstruct(data_paths):
     for filename in glob.glob(data_paths):
         # load planes and bounds from vg data of a (complete) point cloud
         vertex_group = VertexGroup(filename)
-        planes, bounds = np.array(vertex_group.planes), np.array(vertex_group.bounds)
+        planes, bounds, points = np.array(vertex_group.planes), np.array(vertex_group.bounds), np.array(vertex_group.points_grouped, dtype=object)
 
         # construct cell complex and extract the cell centers as query points
-        cell_complex = CellComplex(planes, bounds, build_graph=True)
+        cell_complex = CellComplex(planes, bounds, points, build_graph=True)
+        cell_complex.refine_planes(epsilon=0.005)
         cell_complex.prioritise_planes()
         cell_complex.construct()
         # cell_complex.visualise()
@@ -82,7 +83,7 @@ def reconstruct(data_paths):
         save_candidates = False
         if save_candidates:
             cell_complex.save_plm(
-                (Path('results') / 'p2s_max_model_249' / '{}/eval/ply_candidates'.format(dataset_name) / Path(filename).name).with_suffix('.plm'))
+                (Path('results') / 'p2s_max_model_249' / '{}/eval/candidates'.format(dataset_name) / Path(filename).name).with_suffix('.plm'))
         cell_complex.print_info()
 
         queries = np.array(cell_complex.cell_representatives(location='center'), dtype=np.float32)
@@ -104,23 +105,36 @@ def reconstruct(data_paths):
             '.xyz.npy')
         npy_data = np.load(npy_path)
 
-        naive_classification = True
+        naive_classification = False
         if naive_classification:
             indices_interior = np.where(npy_data > 0)[0]
-            save_path = (npy_path.parent.parent / 'ply_reconstructed' / name).with_suffix('.plm')
+            save_path = (npy_path.parent.parent / 'reconstructed_naive' / name).with_suffix('.plm')
             complexes[name].save_plm(save_path, indices_cells=indices_interior)
 
         graph_cut = True
         if graph_cut:
             adjacency_graph = AdjacencyGraph(complexes[name].graph)
-            weights_dict = adjacency_graph.to_dict(sigmoid(npy_data))
 
-            adjacency_graph.assign_weights_to_cell_links(None)
+            # compute the volumes
+            engine = 'Qhull'
+            volume_factor = 10e5
+            if engine == 'Qhull':
+                from scipy.spatial import ConvexHull
+                volumes = [ConvexHull(cell.vertices_list()).volume * volume_factor for cell in complexes[name].cells]
+            else:
+                from sage.all import RR
+                volumes = [RR(cell.volume()) * volume_factor for cell in complexes[name].cells]
+
+            weights_dict = adjacency_graph.to_dict(sigmoid(npy_data * volumes))
+
+            attribute = 'area_overlap'
+            factor = 0.0009
+            adjacency_graph.assign_weights_to_n_links(complexes[name].cells, attribute=attribute, factor=factor)  # 0.0001
             adjacency_graph.assign_weights_to_st_links(weights_dict)
             _, reachable = adjacency_graph.cut()
-            print('reachable: {}'.format(reachable))
-            save_path = (npy_path.parent.parent / 'ply_reconstructed' / name).with_suffix('.obj')
-            complexes[name].save_obj(save_path, indices_cells=adjacency_graph.to_index(reachable))
+
+            save_path = (npy_path.parent.parent / 'reconstructed_gcut_{}_{}'.format(attribute, factor) / name).with_suffix('.obj')
+            complexes[name].save_obj(save_path, indices_cells=adjacency_graph.to_indices(reachable))
 
 
 if __name__ == '__main__':

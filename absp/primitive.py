@@ -29,6 +29,7 @@ class VertexGroup:
         self.points = None
         self.planes = None
         self.bounds = None
+        self.points_grouped = None
 
         with open(filepath, 'r') as fin:
             self.vgroup = fin.readlines()
@@ -42,7 +43,7 @@ class VertexGroup:
         """
         logger.info('processing {}'.format(self.filepath))
         self.points = self.get_points()
-        self.planes, self.bounds = self.get_primitives()
+        self.planes, self.bounds, self.points_grouped = self.get_primitives()
         self.processed = True
 
     def get_points(self, row=1):
@@ -61,12 +62,14 @@ class VertexGroup:
         primitives = [self.vgroup[line] for line in np.where(is_primitive)[0] + 1]  # lines of groups in the file
         params = []
         bounds = []
+        groups = []
         for i, p in enumerate(primitives):
             points = self.points[np.fromstring(p, sep=' ').astype(np.int64)]
-            param = self._fit_plane(points, mode='PCA')
+            param = self.fit_plane(points, mode='PCA')
             params.append(param)
             bounds.append(self._points_bound(points))
-        return params, bounds
+            groups.append(points)
+        return params, bounds, groups
 
     @staticmethod
     def _points_bound(points):
@@ -89,7 +92,7 @@ class VertexGroup:
         self.points = (self.points - centroid) / scale
 
         # update planes and bounds as point coordinates has changed
-        self.planes, self.bounds = self.get_primitives()
+        self.planes, self.bounds, self.points_grouped = self.get_primitives()
 
         # safely sample points after planes are extracted
         if num:
@@ -116,7 +119,7 @@ class VertexGroup:
         self.points = (self.points - offset) / denominator + centroid
 
         # update planes and bounds as point coordinates has changed
-        self.planes, self.bounds = self.get_primitives()
+        self.planes, self.bounds, self.points_grouped = self.get_primitives()
 
         # safely sample points after planes are extracted
         if num:
@@ -124,7 +127,7 @@ class VertexGroup:
             self.points = self.points[choice, :]
 
     @staticmethod
-    def _fit_plane(points, mode='PCA'):
+    def fit_plane(points, mode='PCA'):
         """
         Fitting plane parameters for a point set.
         :param points: ndarray, n * 3 points
