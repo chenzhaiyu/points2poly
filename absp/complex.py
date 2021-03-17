@@ -193,8 +193,9 @@ class CellComplex:
         :param bound: bound of the query planar primitive. 2 * 3 array.
         :return: indices of existing cells whose bounds intersect with that of the query primitive.
         """
+        # todo: alpha-shape/convex hull to reduce unnecessary partitioning?
         cells_bounds = np.array(self.cells_bounds)  # easier array manipulation
-        bound = self._pad_bound(bound, padding=0.1)
+        bound = self._pad_bound(bound, padding=0.05)
 
         # intersection with existing cell AABB
         center_query = np.mean(bound, axis=0)  # 3,
@@ -354,13 +355,13 @@ class CellComplex:
         # excluding the initial bounding box
         return len(self.planes)
 
-    def volumes(self, engine='Qhull'):
+    def volumes(self, multiplier=1, engine='Qhull'):
         # list of volumes
         if engine == 'Qhull':
             from scipy.spatial import ConvexHull
-            return [ConvexHull(cell.vertices_list()).volume for cell in self.cells]
+            return [ConvexHull(cell.vertices_list()).volume * multiplier for cell in self.cells]
         else:
-            return [RR(cell.volume()) for cell in self.cells]
+            return [RR(cell.volume()) * multiplier for cell in self.cells]
 
     def cell_representatives(self, location='center'):
         """

@@ -12,6 +12,9 @@ class AdjacencyGraph:
     def __init__(self, graph=None):
         self.graph = graph
         self.uid = list(graph.nodes) if graph else None  # passed graph.nodes are sorted
+        self.reachable = None  # for outer surface extraction
+        self.non_reachable = None
+        self._cached_interfaces = {}
 
     def load_graph(self, filepath):
         """
@@ -25,7 +28,7 @@ class AdjacencyGraph:
         else:
             raise NotImplementedError('file format not supported: {}'.format(filepath.suffix))
 
-    def assign_weights_to_n_links(self, cells, attribute='area_overlap', normalise=True, factor=1.0, engine='Qhull'):
+    def assign_weights_to_n_links(self, cells, attribute='area_overlap', normalise=True, factor=1.0, engine='Qhull', cache_interfaces=False):
         """
         Assign weights to edges between every cell. weights is a dict with respect to each pair of nodes.
         """
@@ -39,6 +42,8 @@ class AdjacencyGraph:
             for i, (m, n) in enumerate(self.graph.edges):
                 # compute interface
                 interface = cells[self._uid_to_index(m)].intersection(cells[self._uid_to_index(n)])
+                if cache_interfaces:
+                    self._cached_interfaces[m, n] = interface  # uid pair as key
                 radius[i] = RR(interface.radius())
 
             for i, (m, n) in enumerate(self.graph.edges):
@@ -51,6 +56,8 @@ class AdjacencyGraph:
             for i, (m, n) in enumerate(self.graph.edges):
                 # compute interface
                 interface = cells[self._uid_to_index(m)].intersection(cells[self._uid_to_index(n)])
+                if cache_interfaces:
+                    self._cached_interfaces[m, n] = interface  # uid pair as key
                 if engine == 'Qhull':
                     # 'volume' is the area of the convex hull when input points are 2-dimensional
                     # https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.ConvexHull.html
@@ -64,23 +71,24 @@ class AdjacencyGraph:
                 # balloon term
                 # small (sum of) overlapping area -> large capacity -> small cost -> cut here
                 # todo: optimize more if volume/overlap is small (eliminate only the small protrusion and gaps)
-                # todo: normalized cut so that no penalty for #cells itself
                 # todo: adaptive threshold
-                if True:
-                    self.graph[m][n].update(
-                        {'capacity': ((max_area - area[i]) / max_area if normalise else max_area - area[i]) * factor})
+                self.graph[m][n].update(
+                    {'capacity': ((max_area - area[i]) / max_area if normalise else max_area - area[i]) * factor})
 
         elif attribute == 'vertices_overlap':
             # number of vertices on overlapping areas
             for i, (m, n) in enumerate(self.graph.edges):
                 # compute interface
                 interface = cells[self._uid_to_index(m)].intersection(cells[self._uid_to_index(n)])
+                if cache_interfaces:
+                    self._cached_interfaces[m, n] = interface  # uid pair as key
                 num_vertices[i] = interface.n_vertices()
 
             for i, (m, n) in enumerate(self.graph.edges):
                 max_vertices = max(num_vertices)
                 # few number of vertices -> large capacity -> small cost -> cut here
-                self.graph[m][n].update({'capacity': ((max_vertices - num_vertices[i]) / max_vertices if normalise else max_vertices - num_vertices[i]) * factor})
+                self.graph[m][n].update({'capacity': ((max_vertices - num_vertices[
+                    i]) / max_vertices if normalise else max_vertices - num_vertices[i]) * factor})
 
         elif attribute == 'area_misalign':
             # area_misalign makes little sense as observed from the results
@@ -90,6 +98,8 @@ class AdjacencyGraph:
             for i, (m, n) in enumerate(self.graph.edges):
                 # compute interface
                 interface = cells[self._uid_to_index(m)].intersection(cells[self._uid_to_index(n)])
+                if cache_interfaces:
+                    self._cached_interfaces[m, n] = interface  # uid pair as key
 
                 for facet_m in cells[self._uid_to_index(m)].facets():
                     for facet_n in cells[self._uid_to_index(n)].facets():
@@ -148,9 +158,58 @@ class AdjacencyGraph:
         cut_value, partition = nx.algorithms.flow.minimum_cut(self.graph, 's', 't')
         reachable, non_reachable = partition
         reachable.remove('s')
+        non_reachable.remove('t')
+        self.reachable = reachable
+        self.non_reachable = non_reachable
+
         logger.info('cut_value: {}'.format(cut_value))
         logger.info('number of extracted cells: {}'.format(len(reachable)))
         return cut_value, reachable
+
+    def save_surface_obj(self, filepath, cells):
+        """
+        Outer surface from interfaces between cells being cut.
+        """
+        if self.reachable is None:
+            raise ValueError('no reachable cells')
+        elif self.non_reachable is None:
+            logger.warning('all cells marked as inside')
+
+        surface = None
+        surface_str = ''
+        for edge in self.graph.edges:
+            # facet is where one cell being outside and the other one being inside
+            if edge[0] in self.reachable and edge[1] in self.non_reachable:
+                # retrieve interface and orient as on edge[0]
+                if self._cached_interfaces:
+                    interface = self._cached_interfaces[edge[0], edge[1]] if (edge[0],
+                                                                              edge[1]) in self._cached_interfaces else \
+                        self._cached_interfaces[edge[1], edge[0]]
+                else:
+                    interface = cells[self._uid_to_index(edge[0])].intersection(cells[self._uid_to_index(edge[1])])
+                surface += interface.render_solid()
+
+            elif edge[1] in self.reachable and edge[0] in self.non_reachable:
+                # retrieve interface and orient as on edge[1]
+                if self._cached_interfaces:
+                    interface = self._cached_interfaces[edge[1], edge[0]] if (edge[1],
+                                                                              edge[0]) in self._cached_interfaces else \
+                        self._cached_interfaces[edge[0], edge[1]]
+                else:
+                    interface = cells[self._uid_to_index(edge[1])].intersection(cells[self._uid_to_index(edge[0])])
+                surface += interface.render_solid()
+        surface_obj = surface.obj_repr(surface.default_render_params())
+
+        for o in range(len(surface_obj)):
+            surface_str += surface_obj[o][0] + '\n'
+            surface_str += '\n'.join(surface_obj[o][2]) + '\n'
+            surface_str += '\n'.join(surface_obj[o][3]) + '\n'  # contents[o][4] are the interior facets
+
+        # create the dir if not exists
+        filepath = Path(filepath)
+        filepath.parent.mkdir(parents=True, exist_ok=True)
+        with open(filepath, 'w') as f:
+            f.writelines(surface_str)
 
     def draw(self):
         """
