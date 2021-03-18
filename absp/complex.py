@@ -381,7 +381,7 @@ class CellComplex:
 
     def save_npy(self, filepath):
         """
-        Save the cell complex to an npy file.
+        Save the cells to an npy file (deprecated).
         :param filepath: filepath.
         """
         if self.constructed:

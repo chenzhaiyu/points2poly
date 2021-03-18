@@ -59,4 +59,4 @@ def extract_surface(filepath_write_surface, cell_complex, sdf_values, graph_cut=
         _, reachable = adjacency_graph.cut()
 
         # write surface into obj file
-        adjacency_graph.save_surface_obj(filepath=filepath_write_surface, cells=cell_complex.cells)
+        adjacency_graph.save_surface_obj(filepath=filepath_write_surface, cells=cell_complex.cells, engine='rendering')
