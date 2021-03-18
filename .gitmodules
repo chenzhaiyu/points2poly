@@ -1,0 +1,4 @@
+[submodule "absp"]
+	path = absp
+	url = https://github.com/chenzhaiyu/absp
+	branch = core
