@@ -14,7 +14,7 @@ def evaluate_full(dataset_paths, complexes_path=None):
     complexes = {}
     for filepath in glob.glob(dataset_paths):
         filepath = Path(filepath)
-        cell_complex = create_cell_complex(filepath)
+        cell_complex = create_cell_complex(filepath, prioritise_verticals=True)  # prioritise_verticals for buildings
         complexes.update({filepath.stem: cell_complex})
         create_query_points(cell_complex,
                             filepath_write_query=(filepath.parent.parent / '05_query_pts' / filepath.name).with_suffix(
@@ -22,6 +22,7 @@ def evaluate_full(dataset_paths, complexes_path=None):
 
     # dump complexes
     if complexes_path:
+        Path(complexes_path).parent.mkdir(parents=True, exist_ok=True)
         with open(complexes_path, 'wb') as f_complexes:
             pickle.dump(complexes, f_complexes)
 
@@ -57,7 +58,7 @@ def evaluate_surface_extraction(complexes_path):
 
 
 if __name__ == '__main__':
-    dataset_name = 'helsinki_noise_free'
+    dataset_name = 'helsinki_noise_free'  # famous_dense or helsinki_noise_free
 
     evaluate_full(dataset_paths='datasets/{}/06_vertex_group/*.vg'.format(dataset_name),
                   complexes_path='results/p2s_max_model_249/{}/eval/complexes.dictionary'.format(dataset_name))

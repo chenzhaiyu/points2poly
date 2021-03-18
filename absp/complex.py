@@ -140,7 +140,7 @@ class CellComplex:
         self.bounds = np.array(bounds)
         self.points = np.array(points, dtype=object)
 
-    def prioritise_planes(self):
+    def prioritise_planes(self, prioritise_verticals=True):
         """
         First, vertical planar primitives are accorded higher priority than horizontal or oblique ones
         to avoid incomplete partitioning due to missing data about building facades.
@@ -150,12 +150,15 @@ class CellComplex:
         """
         logger.info('prioritising planar primitives')
         # compute the priority
-        indices_vertical_planes = self._vertical_planes(slope_threshold=0.9)
         indices_sorted_planes = self._sort_planes()
 
-        bool_vertical_planes = np.in1d(indices_sorted_planes, indices_vertical_planes)
-        indices_priority = np.append(indices_sorted_planes[bool_vertical_planes],
-                                     indices_sorted_planes[np.invert(bool_vertical_planes)])
+        if prioritise_verticals:
+            indices_vertical_planes = self._vertical_planes(slope_threshold=0.9)
+            bool_vertical_planes = np.in1d(indices_sorted_planes, indices_vertical_planes)
+            indices_priority = np.append(indices_sorted_planes[bool_vertical_planes],
+                                         indices_sorted_planes[np.invert(bool_vertical_planes)])
+        else:
+            indices_priority = indices_sorted_planes
 
         # reorder both the planes and their bounds
         self.planes = self.planes[indices_priority]

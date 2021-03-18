@@ -1,1 +1,0 @@
-tensorboard --logdir="logs"

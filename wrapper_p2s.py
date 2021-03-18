@@ -3,7 +3,7 @@ Wrapper for p2s.
 """
 
 import os
-from source import points_to_surf_eval
+from p2s import points_to_surf_eval
 
 
 def predict(dataset_name, opt=None):

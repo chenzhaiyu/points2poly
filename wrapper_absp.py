@@ -8,7 +8,7 @@ from utils import sigmoid
 from absp import VertexGroup, CellComplex, AdjacencyGraph
 
 
-def create_cell_complex(filepath_read_vg, filepath_write_candidate=None):
+def create_cell_complex(filepath_read_vg, filepath_write_candidate=None, prioritise_verticals=True):
     # load planes and bounds from vg data of a (complete) point cloud
     vertex_group = VertexGroup(filepath_read_vg)
     planes, bounds, points = np.array(vertex_group.planes), np.array(vertex_group.bounds), np.array(vertex_group.points_grouped, dtype=object)
@@ -16,7 +16,7 @@ def create_cell_complex(filepath_read_vg, filepath_write_candidate=None):
     # construct cell complex and extract the cell centers as query points
     cell_complex = CellComplex(planes, bounds, points, build_graph=True)
     cell_complex.refine_planes(epsilon=0.005)
-    cell_complex.prioritise_planes()
+    cell_complex.prioritise_planes(prioritise_verticals=prioritise_verticals)
     cell_complex.construct()
 
     # save candidate cells
