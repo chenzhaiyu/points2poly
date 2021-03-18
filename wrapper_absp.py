@@ -11,7 +11,8 @@ from absp import VertexGroup, CellComplex, AdjacencyGraph
 def create_cell_complex(filepath_read_vg, filepath_write_candidate=None, prioritise_verticals=True):
     # load planes and bounds from vg data of a (complete) point cloud
     vertex_group = VertexGroup(filepath_read_vg)
-    planes, bounds, points = np.array(vertex_group.planes), np.array(vertex_group.bounds), np.array(vertex_group.points_grouped, dtype=object)
+    planes, bounds, points = np.array(vertex_group.planes), np.array(vertex_group.bounds), np.array(
+        vertex_group.points_grouped, dtype=object)
 
     # construct cell complex and extract the cell centers as query points
     cell_complex = CellComplex(planes, bounds, points, build_graph=True)
@@ -54,9 +55,10 @@ def extract_surface(filepath_write_surface, cell_complex, sdf_values, graph_cut=
 
         # graph partitioning
         attribute = 'area_overlap'
-        adjacency_graph.assign_weights_to_n_links(cell_complex.cells, attribute=attribute, factor=coefficient, cache_interfaces=True)
+        adjacency_graph.assign_weights_to_n_links(cell_complex.cells, attribute=attribute, factor=coefficient,
+                                                  cache_interfaces=True)
         adjacency_graph.assign_weights_to_st_links(weights_dict)
         _, reachable = adjacency_graph.cut()
 
         # write surface into obj file
-        adjacency_graph.save_surface_obj(filepath=filepath_write_surface, cells=cell_complex.cells, engine='rendering')
+        adjacency_graph.save_surface_obj(filepath=filepath_write_surface, cells=cell_complex.cells, engine='projection')
