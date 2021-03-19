@@ -131,7 +131,7 @@ dmypy.json
 *.zip
 *.pth
 results/
-models/
+p2s/models/
 logs/
 datasets/
 
