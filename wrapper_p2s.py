@@ -42,4 +42,5 @@ def predict(dataset_name, opt=None):
 
         # evaluate
         opt.reconstruction = False
+        opt.disable_dist = True
         points_to_surf_eval.points_to_surf_eval(opt)

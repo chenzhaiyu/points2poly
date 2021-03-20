@@ -1,5 +1,4 @@
 from p2s.utils import points_to_surf_train
-import os
 
 # When you see this error:
 # 'Expected more than 1 value per channel when training...' which is raised by the BatchNorm1d layer
@@ -10,11 +9,11 @@ import os
 
 
 if __name__ == '__main__':
-
     # settings for training p2s_max model
     train_params = [
         '--name', 'debug',
-        '--indir', '../datasets/abc_train',
+        '--indir', '../datasets/abc_minimal',
+        '--trainset', 'trainset.txt',
         '--testset', 'valset.txt',
         '--outdir', 'models',
         '--nepoch', str(10),
@@ -35,11 +34,11 @@ if __name__ == '__main__':
         '--net_size', str(1024),
         '--patch_center', 'mean',
         '--training_order', 'random_shape_consecutive',
-        '--outputs', 'imp_surf_magnitude', 'imp_surf_sign', 'patch_pts_ids', 'p_index'
-        ]
+        '--outputs', 'imp_surf_magnitude', 'imp_surf_sign', 'patch_pts_ids', 'p_index',
+    ]
 
     # train model on GT data with multiple query points per patch
     train_opt = points_to_surf_train.parse_arguments(train_params)
     points_to_surf_train.points_to_surf_train(train_opt)
-    
+
     print('MeshNet training is finished!')

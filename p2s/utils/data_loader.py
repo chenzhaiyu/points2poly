@@ -218,7 +218,7 @@ class PointcloudPatchDataset(data.Dataset):
                  cache_capacity=1, point_count_std=0.0,
                  pre_processed_patches=False, query_grid_resolution=None,
                  sub_sample_size=500, reconstruction=False, uniform_subsample=False,
-                 num_workers=1):
+                 num_workers=1, disable_dist=False):
 
         # initialize parameters
         self.root = root
@@ -237,6 +237,8 @@ class PointcloudPatchDataset(data.Dataset):
         self.num_workers = num_workers
         self.epsilon = epsilon
         self.uniform_subsample = uniform_subsample
+
+        self.disable_dist = disable_dist
 
         self.include_connectivity = False
         self.include_imp_surf = False
@@ -356,12 +358,13 @@ class PointcloudPatchDataset(data.Dataset):
 
         # surf dist can be None because we have no ground truth for evaluation
         # need a number or Pytorch will complain when assembling the batch
-        if self.reconstruction:
+        if self.reconstruction or self.disable_dist:
             imp_surf_dist_ms = np.array([np.inf])
             imp_surf_dist_sign_ms = np.array([np.inf])
         else:
-            imp_surf_dist_ms = np.array([np.inf])
-            imp_surf_dist_sign_ms = np.array([np.inf])
+            imp_surf_dist_ms = shape.imp_surf_dist_ms[patch_ind]
+            imp_surf_dist_sign_ms = np.sign(imp_surf_dist_ms)
+            imp_surf_dist_sign_ms = 0.0 if imp_surf_dist_sign_ms < 0.0 else 1.0
 
         if self.sub_sample_size > 0:
             pts_sub_sample_ms = utils.get_point_cloud_sub_sample(
@@ -434,7 +437,8 @@ class PointcloudPatchDataset(data.Dataset):
         point_filename = os.path.join(self.root, '04_pts', self.shape_names[shape_ind]+'.xyz')
         imp_surf_query_filename = os.path.join(self.root, '05_query_pts', self.shape_names[shape_ind]+'.ply.npy') \
             if self.include_imp_surf and self.pre_processed_patches and not self.reconstruction else None
-        imp_surf_dist_filename = None
+        imp_surf_dist_filename = os.path.join(self.root, '05_query_dist', self.shape_names[shape_ind]+'.ply.npy') \
+            if self.include_imp_surf and self.pre_processed_patches and not self.reconstruction and not self.disable_dist else None
 
         return load_shape(
             point_filename=point_filename,

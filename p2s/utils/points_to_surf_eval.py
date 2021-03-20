@@ -8,7 +8,7 @@ import torch.utils.data
 from tqdm import tqdm
 
 from p2s.utils.points_to_surf_model import PointsToSurfModel
-from p2s.utils import data_loader, sdf, sdf_nn
+from p2s.utils import data_loader, sdf_nn, sdf
 from p2s.base import file_utils
 
 
@@ -118,6 +118,7 @@ def make_dataset(train_opt, eval_opt):
         patch_radius=train_opt.patch_radius,
         epsilon=eval_opt.epsilon,  # not necessary for training
         uniform_subsample=train_opt.uniform_subsample if 'uniform_subsample' in train_opt else 0,
+        disable_dist=True if hasattr(eval_opt, 'disable_dist') and eval_opt.disable_dist else False,
     )
     return dataset
 

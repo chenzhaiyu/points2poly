@@ -304,38 +304,6 @@ def _hausdorff_distance_single_file(file_in, file_ref, samples_per_model):
     return file_in, file_ref, dist_new_ref, dist_ref_new, dist
 
 
-# def _hausdorff_distance_points_to_mesh_single_file(file_points, file_mesh, sample_per_model):
-#     import scipy.spatial as spatial
-#     import trimesh
-#     import trimesh.sample
-#
-#     def sample_mesh(mesh_file, num_samples):
-#         try:
-#             mesh = trimesh.load(mesh_file)
-#         except:
-#             return np.zeros((0, 3))
-#         samples, face_indices = trimesh.sample.sample_surface_even(mesh, num_samples)
-#         return samples
-#
-#     def get_points(points_file):
-#         try:
-#             points = trimesh.load(points_file)
-#         except:
-#             return np.zeros((0, 3))
-#         return points
-#
-#     mesh_samples = sample_mesh(file_mesh, sample_per_model)
-#     ref_samples = get_points(file_points)
-#
-#     if mesh_samples.shape[0] == 0 or ref_samples.shape[0] == 0:
-#         return file_mesh, file_points, -1.0, -1.0, -1.0
-#
-#     dist_new_ref, _, _ = spatial.distance.directed_hausdorff(mesh_samples, ref_samples)
-#     dist_ref_new, _, _ = spatial.distance.directed_hausdorff(ref_samples, mesh_samples)
-#     dist = max(dist_new_ref, dist_ref_new)
-#     return file_mesh, file_points, dist_new_ref, dist_ref_new, dist
-
-
 def mesh_comparison(new_meshes_dir_abs, ref_meshes_dir_abs,
                     num_processes, report_name, samples_per_model=10000, dataset_file_abs=None):
     if not os.path.isdir(new_meshes_dir_abs):
