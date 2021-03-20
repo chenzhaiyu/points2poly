@@ -1,66 +1,20 @@
-import glob
-import numpy as np
-from pathlib import Path
-import pickle
-
-from wrapper_absp import create_cell_complex, create_query_points, extract_surface
-from wrapper_p2s import predict
+import os
+from p2s.base import evaluation
 
 
-def evaluate_full(dataset_paths, complexes_path=None):
-    # full evaluation starting from point clouds
-
-    # create cell complexes and save query points (.npy)
-    complexes = {}
-    for filepath in glob.glob(dataset_paths):
-        filepath = Path(filepath)
-        cell_complex = create_cell_complex(filepath)
-        complexes.update({filepath.stem: cell_complex})
-        create_query_points(cell_complex,
-                            filepath_write_query=(filepath.parent.parent / '05_query_pts' / filepath.name).with_suffix(
-                                '.ply.npy'))
-
-    # dump complexes
-    if complexes_path:
-        with open(complexes_path, 'wb') as f_complexes:
-            pickle.dump(complexes, f_complexes)
-
-    # batch prediction and save sdf values (.npy)
-    predict(dataset_name)
-
-    # extract surfaces (.obj)
-    for name in complexes:
-        sdf_path = (Path('results') / 'p2s_max_model_249' / '{}/eval/eval/'.format(dataset_name) / name).with_suffix(
-            '.xyz.npy')
-        sdf_values = np.load(sdf_path)
-        extract_surface((sdf_path.parent.parent / 'reconstructed' / name).with_suffix('.obj'), complexes[name],
-                        sdf_values, graph_cut=True, coefficient=0.0010)
-
-
-def evaluate_surface_extraction(complexes_path):
-    # evaluation of surface extraction only. cell complexes and sdf predictions are loaded off-the-shelf.
-
-    # load cell complexes
-    with open(complexes_path, 'rb') as f_complexes:
-        complexes = pickle.load(f_complexes)
-        print('{} loaded'.format(complexes_path))
-
-    for name in complexes:
-        # load prediction results
-        sdf_path = (Path('results') / 'p2s_max_model_249' / '{}/eval/eval/'.format(dataset_name) / name).with_suffix(
-            '.xyz.npy')
-        sdf_values = np.load(sdf_path)
-
-        # surface extraction
-        extract_surface((sdf_path.parent.parent / 'reconstructed' / name).with_suffix('.obj'), complexes[name],
-                        sdf_values, graph_cut=True, coefficient=0.0010)
+def evaluate_hausdorff_dist(data_dir, pred_dir, gt_dir, num_workers=6):
+    csv_file = os.path.join(pred_dir, 'hausdorff_dist_pred_rec.csv')
+    evaluation.mesh_comparison(
+        new_meshes_dir_abs=pred_dir,
+        ref_meshes_dir_abs=gt_dir,
+        num_processes=num_workers,
+        report_name=csv_file,
+        samples_per_model=10000,  # randomness introduced
+        dataset_file_abs=data_dir)
 
 
 if __name__ == '__main__':
-    dataset_name = 'helsinki_noise_free'
-
-    evaluate_full(dataset_paths='datasets/{}/06_vertex_group/*.vg'.format(dataset_name),
-                  complexes_path='results/p2s_max_model_249/{}/eval/complexes.dictionary'.format(dataset_name))
-
-    # evaluate_surface_extraction(
-    #     complexes_path='results/p2s_max_model_249/{}/eval/complexes.dictionary'.format(dataset_name))
+    dataset_name = 'helsinki_noise_free'  # famous_dense or helsinki_noise_free
+    evaluate_hausdorff_dist(data_dir='datasets/{}/testset.txt'.format(dataset_name),
+                            pred_dir='results/p2s_max_model_249/{}/eval/reconstructed'.format(dataset_name),
+                            gt_dir='datasets/{}/03_meshes'.format(dataset_name))
