@@ -142,7 +142,7 @@ def make_dataset_splits(base_dir, dataset_dir, final_out_dir, seed=42, only_test
 
 def main(dataset_name: str):
 
-    base_dir = '../../datasets'
+    base_dir = '../datasets'
     #num_processes = 1
     num_processes = 7  # 16 processes need up to 64 GB RAM for the signed distances
 

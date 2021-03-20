@@ -7,9 +7,8 @@ import torch.nn.parallel
 import torch.utils.data
 from tqdm import tqdm
 
-from p2s.points_to_surf_model import PointsToSurfModel
-from p2s import data_loader
-from p2s import sdf_nn
+from p2s.utils.points_to_surf_model import PointsToSurfModel
+from p2s.utils import data_loader, sdf, sdf_nn
 from p2s.base import file_utils
 
 
@@ -197,8 +196,6 @@ def post_process(batch_pred, train_opt, output_ids, output_pred_ind, patch_radiu
 
 def save_reconstruction_data(imp_surf_dist_ms, dataset, model_out_dir, shape_ind):
 
-    from p2s import sdf
-
     shape = dataset.shape_cache.get(shape_ind)
 
     imp_surf_dist_ms_nan = np.isnan(imp_surf_dist_ms)
@@ -229,7 +226,7 @@ def save_evaluation(datasampler, dataset, eval_opt, model_out_dir, output_ids, o
     def visualize_result(pts_query_ms, dist_query_ms):
         out_vis_file = os.path.join(model_out_dir, 'vis', dataset.shape_names[shape_ind] + '.ply')
         file_utils.make_dir_for_file(out_vis_file)
-        from p2s import sdf
+        from p2s.utils import sdf
         sdf.visualize_query_points(pts_query_ms, dist_query_ms, out_vis_file)
 
     # save implicit surface

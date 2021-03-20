@@ -3,7 +3,7 @@ Wrapper for p2s.
 """
 
 import os
-from p2s import points_to_surf_eval
+from p2s.utils import points_to_surf_eval
 
 
 def predict(dataset_name, opt=None):
@@ -14,7 +14,7 @@ def predict(dataset_name, opt=None):
         opt.seed = 40938661
         opt.indir = 'datasets'
         opt.outdir = 'results'
-        opt.modeldir = 'models'
+        opt.modeldir = 'p2s/models'
         opt.dataset = '{}/testset.txt'.format(dataset_name)
         opt.models = 'p2s_max'
         opt.modelpostfix = '_model_249.pth'

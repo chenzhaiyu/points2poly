@@ -1,9 +1,8 @@
 import os
 import time
 
-from p2s import points_to_surf_eval
 from p2s.base import evaluation
-from p2s import sdf
+from p2s.utils import sdf, points_to_surf_eval
 
 
 # When you see this error:

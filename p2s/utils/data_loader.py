@@ -10,7 +10,7 @@ import trimesh
 from p2s.base import mesh_io
 from p2s.base import utils
 from p2s.base import file_utils
-from p2s import sdf
+from p2s.utils import sdf
 
 
 def load_shape(point_filename, imp_surf_query_filename, imp_surf_dist_filename,

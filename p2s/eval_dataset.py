@@ -92,7 +92,7 @@ def main(dataset_name: str):
     num_processes = 12
     # num_processes = 1
 
-    base_dir = '../../datasets'
+    base_dir = '../datasets'
     dataset_dir = dataset_name
 
     print('Processing dataset: ' + dataset_name)

@@ -1,8 +1,6 @@
 import os
 
-from p2s import points_to_surf_train
-from p2s import points_to_surf_eval
-from p2s import sdf
+from p2s.utils import points_to_surf_train, sdf, points_to_surf_eval
 from p2s.base import evaluation
 
 # When you see this error:
@@ -17,7 +15,7 @@ if __name__ == '__main__':
 
     model_name = 'vanilla'
     dataset = 'abc_minimal'
-    base_dir = '../../datasets'
+    base_dir = '../datasets'
     in_dir_train = os.path.join(base_dir, dataset)
 
     train_set = 'trainset.txt'

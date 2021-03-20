@@ -2,7 +2,6 @@ from __future__ import print_function
 
 import argparse
 import os
-import sys
 import random
 import math
 import shutil
@@ -16,9 +15,8 @@ import torch.utils.data
 
 from torch.utils.tensorboard import SummaryWriter
 
-from p2s.points_to_surf_model import PointsToSurfModel
-from p2s import data_loader
-from p2s import sdf_nn
+from p2s.utils.points_to_surf_model import PointsToSurfModel
+from p2s.utils import data_loader, sdf_nn
 from p2s.base import evaluation
 
 debug = False

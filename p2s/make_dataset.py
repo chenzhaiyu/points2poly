@@ -14,7 +14,7 @@ import trimesh.transformations as trafo
 from p2s.base import utils
 from p2s.base import utils_mp
 from p2s.base import file_utils
-from p2s import sdf
+from p2s.utils import sdf
 from p2s.base import point_cloud
 
 
@@ -798,7 +798,7 @@ def make_dataset(dataset_name: str, blensor_bin: str, base_dir: str, num_process
 if __name__ == "__main__":
 
     blensor_bin = "bin/Blensor-x64.AppImage"
-    base_dir = '../../datasets'
+    base_dir = '../datasets'
     num_processes = 7
     datasets = [
         'abc', 'abc_extra_noisy', 'abc_noisefree',

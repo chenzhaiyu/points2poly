@@ -7,7 +7,7 @@ import trimesh
 import trimesh.repair
 import numpy as np
 
-from p2s import sdf
+from p2s.utils import sdf
 from p2s.base import utils_mp
 from p2s.base import file_utils
 
@@ -341,7 +341,7 @@ def main():
     num_processes = 12
     #num_processes = 1
 
-    base_dir = '../../datasets'
+    base_dir = '../datasets'
     meshlabserver = '~/repos/meshlab/src/distrib/meshlabserver'
     hole_filling_mesh_simp_script = 'hole_filling_mesh_simp.mlx'
     out_dir_examples = '~/repos/DeepSDF/examples/'
