@@ -206,7 +206,7 @@ def _pcd_files_to_pts(pcd_files, pts_file_npy, pts_file, obj_locations, obj_rota
 def sample_blensor(base_dir, dataset_dir, blensor_bin, dir_in,
                    dir_out, dir_out_vis, dir_out_pcd, dir_blensor_scripts,
                    num_scans_per_mesh_min, num_scans_per_mesh_max, num_processes, min_pts_size=0,
-                   scanner_noise_sigma_min=0.0, scanner_noise_sigma_max=0.05):
+                   scanner_noise_sigma_min=0.0, scanner_noise_sigma_max=0.05, exclude_bottom=False):
     """
     Call Blender to use a Blensor script to sample a point cloud from a mesh
     :param base_dir:
@@ -268,7 +268,22 @@ def sample_blensor(base_dir, dataset_dir, blensor_bin, dir_in,
             obj_location_rand_factors = np.array([0.1, 1.0, 0.1])
             obj_location *= obj_location_rand_factors
             obj_location[1] += 4.0  # offset in cam view dir
-            obj_rotation = trafo.random_quaternion(rnd.rand(3))
+
+            if not exclude_bottom:
+                obj_rotation = trafo.random_quaternion(rnd.rand(3))
+
+            else:
+                # simulate drone captured buildings
+                origin, xaxis, yaxis, zaxis = [0, 0, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1]
+                # for helsinki dataset: 0 < alpha < 3.14, -1.57 < beta < 1.57, -1.57 < gamma < 1.57
+                alpha, beta, gamma = rnd.rand(3) * 3.14
+                beta -= 1.57
+                gamma -= 1.57
+                qx = trafo.quaternion_about_axis(alpha, xaxis)
+                qy = trafo.quaternion_about_axis(beta, yaxis)
+                qz = trafo.quaternion_about_axis(gamma, zaxis)
+                q = trafo.quaternion_multiply(qx, qy)
+                obj_rotation = q
 
             # extend lists of pcd output files
             new_pcd_base_files.append(pcd_base_file)
@@ -757,7 +772,8 @@ def make_dataset(dataset_name: str, blensor_bin: str, base_dir: str, num_process
                    num_scans_per_mesh_min=num_scans_per_mesh_min, num_scans_per_mesh_max=num_scans_per_mesh_max,
                    num_processes=num_processes,
                    min_pts_size=0 if only_for_evaluation else 5000,
-                   scanner_noise_sigma_min=scanner_noise_sigma_min, scanner_noise_sigma_max=scanner_noise_sigma_max)
+                   scanner_noise_sigma_min=scanner_noise_sigma_min, scanner_noise_sigma_max=scanner_noise_sigma_max,
+                   exclude_bottom=True)
 
     if filter_broken_inputs:
         clean_up_broken_inputs(base_dir=base_dir, dataset_dir=dataset_dir,
@@ -800,12 +816,13 @@ if __name__ == "__main__":
     blensor_bin = "bin/Blensor-x64.AppImage"
     base_dir = '../datasets'
     num_processes = 7
-    datasets = [
-        'abc', 'abc_extra_noisy', 'abc_noisefree',
-        'famous_original', 'famous_noisefree', 'famous_dense', 'famous_extra_noisy', 'famous_sparse',
-        'thingi10k_scans_original', 'thingi10k_scans_dense', 'thingi10k_scans_sparse',
-        'thingi10k_scans_extra_noisy', 'thingi10k_scans_noisefree'
-    ]
+    # datasets = [
+    #     'abc', 'abc_extra_noisy', 'abc_noisefree',
+    #     'famous_original', 'famous_noisefree', 'famous_dense', 'famous_extra_noisy', 'famous_sparse',
+    #     'thingi10k_scans_original', 'thingi10k_scans_dense', 'thingi10k_scans_sparse',
+    #     'thingi10k_scans_extra_noisy', 'thingi10k_scans_noisefree'
+    # ]
+    datasets = ['helsinki_noise_0.001-0.005']
 
     for d in datasets:
         make_dataset(dataset_name=d, blensor_bin=blensor_bin, base_dir=base_dir, num_processes=num_processes)

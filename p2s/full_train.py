@@ -12,11 +12,12 @@ if __name__ == '__main__':
     # settings for training p2s_max model
     train_params = [
         '--name', 'debug',
-        '--indir', '../datasets/abc_minimal',
+        '--indir', '../datasets/helsinki_noise_0.001-0.005',
+        '--refine', 'models/p2s_max_model_249.pth',
         '--trainset', 'trainset.txt',
         '--testset', 'valset.txt',
         '--outdir', 'models',
-        '--nepoch', str(10),
+        '--nepoch', str(300),
         '--lr', str(0.01),
         '--scheduler_steps', str(100), str(200),
         '--debug', str(0),
