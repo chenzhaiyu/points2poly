@@ -7,6 +7,7 @@ from p2s.utils import points_to_surf_train
 # see https://github.com/pytorch/pytorch/issues/2584
 # see https://forums.fast.ai/t/understanding-code-error-expected-more-than-1-value-per-channel-when-training/9257/12
 
+use_hpc = True
 
 if __name__ == '__main__':
     # settings for training p2s_max model
@@ -22,8 +23,8 @@ if __name__ == '__main__':
         '--lr', str(0.01),  # relative to the checkpoint being refined
         '--scheduler_steps', str(100), str(200),  # relative to the checkpoint being refined
         '--debug', str(0),
-        '--workers', str(7),  # 7 for normal machine; 22 for strong machine
-        '--batchSize', str(101),  # 101 for normal machine; 1001 for strong machine
+        '--workers', str(22) if use_hpc else str(7),  # 7 for normal machine; 22 for strong machine
+        '--batchSize', str(1001) if use_hpc else str(101),  # 101 for normal machine; 1001 for strong machine
         '--points_per_patch', str(300),
         '--patches_per_shape', str(1000),
         '--sub_sample_size', str(1000),
