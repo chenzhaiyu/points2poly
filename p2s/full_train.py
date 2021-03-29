@@ -11,18 +11,19 @@ from p2s.utils import points_to_surf_train
 if __name__ == '__main__':
     # settings for training p2s_max model
     train_params = [
-        '--name', 'helsinki_noise_0.001-0.005_no_bottom',
-        '--indir', '../datasets/helsinki_noise_0.001-0.005_no_bottom',
-        '--refine', 'models/p2s_max_model_249.pth',
+        '--name', 'debug',
+        '--indir', './datasets/helsinki_noise_0.001-0.005_no_bottom',
+        '--refine', './p2s/models/p2s_max_model_249.pth',
+        '--outdir', './p2s/models',
+        '--logdir', './p2s/logs',
         '--trainset', 'trainset.txt',
         '--testset', 'valset.txt',
-        '--outdir', 'models',
         '--nepoch', str(300),
-        '--lr', str(0.01),
-        '--scheduler_steps', str(100), str(200),
+        '--lr', str(0.01),  # relative to the checkpoint being refined
+        '--scheduler_steps', str(100), str(200),  # relative to the checkpoint being refined
         '--debug', str(0),
-        '--workers', str(7),
-        '--batchSize', str(101),
+        '--workers', str(7),  # 7 for normal machine; 22 for strong machine
+        '--batchSize', str(101),  # 101 for normal machine; 1001 for strong machine
         '--points_per_patch', str(300),
         '--patches_per_shape', str(1000),
         '--sub_sample_size', str(1000),
