@@ -11,8 +11,8 @@ from p2s.utils import points_to_surf_train
 if __name__ == '__main__':
     # settings for training p2s_max model
     train_params = [
-        '--name', 'debug',
-        '--indir', '../datasets/helsinki_noise_0.001-0.005',
+        '--name', 'helsinki_noise_0.001-0.005_no_bottom',
+        '--indir', '../datasets/helsinki_noise_0.001-0.005_no_bottom',
         '--refine', 'models/p2s_max_model_249.pth',
         '--trainset', 'trainset.txt',
         '--testset', 'valset.txt',
