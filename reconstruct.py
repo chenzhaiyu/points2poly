@@ -5,6 +5,9 @@ import pickle
 
 from wrapper_absp import create_cell_complex, create_query_points, extract_surface
 from wrapper_p2s import predict
+from absp import attach_to_log
+
+attach_to_log(filepath='reconstruction.log')
 
 
 def reconstruct_full(dataset_paths, complexes_path=None):
@@ -14,7 +17,13 @@ def reconstruct_full(dataset_paths, complexes_path=None):
     complexes = {}
     for filepath in glob.glob(dataset_paths):
         filepath = Path(filepath)
-        cell_complex = create_cell_complex(filepath, prioritise_verticals=True)  # prioritise_verticals for buildings
+
+        # prioritise_verticals for buildings
+        # normalise vg only for dataset created from point clouds instead of meshes
+        filepath_write_candidate = filepath.with_suffix('.plm')
+        cell_complex = create_cell_complex(filepath, filepath_write_candidate=filepath_write_candidate, prioritise_verticals=True,
+                                           normalise_vg=False)
+
         complexes.update({filepath.stem: cell_complex})
         create_query_points(cell_complex,
                             filepath_write_query=(filepath.parent.parent / '05_query_pts' / filepath.name).with_suffix(
@@ -35,7 +44,7 @@ def reconstruct_full(dataset_paths, complexes_path=None):
             '.xyz.npy')
         sdf_values = np.load(sdf_path)
         extract_surface((sdf_path.parent.parent / 'reconstructed' / name).with_suffix('.obj'), complexes[name],
-                        sdf_values, graph_cut=True, coefficient=0.0010)
+                        sdf_values, graph_cut=True, coefficient=0.005)
 
 
 def reconstruct_surface(complexes_path):

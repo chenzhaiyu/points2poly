@@ -8,9 +8,14 @@ from utils import sigmoid
 from absp import VertexGroup, CellComplex, AdjacencyGraph
 
 
-def create_cell_complex(filepath_read_vg, filepath_write_candidate=None, prioritise_verticals=True):
+def create_cell_complex(filepath_read_vg, filepath_write_candidate=None, prioritise_verticals=True, normalise_vg=False):
     # load planes and bounds from vg data of a (complete) point cloud
     vertex_group = VertexGroup(filepath_read_vg)
+
+    # normalise only if the dataset is created from point clouds instead of meshes
+    if normalise_vg:
+        vertex_group.normalise_to_centroid_and_scale()
+
     planes, bounds, points = np.array(vertex_group.planes), np.array(vertex_group.bounds), np.array(
         vertex_group.points_grouped, dtype=object)
 

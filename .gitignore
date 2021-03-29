@@ -137,3 +137,6 @@ datasets/
 
 # macOS
 .DS_Store
+
+# bin folder
+datasets/bin/
