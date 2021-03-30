@@ -2,6 +2,7 @@ import glob
 import numpy as np
 from pathlib import Path
 import pickle
+import os
 
 from wrapper_absp import create_cell_complex, create_query_points, extract_surface
 from wrapper_p2s import predict
@@ -21,7 +22,7 @@ def reconstruct_full(dataset_paths, complexes_path=None):
         # prioritise_verticals for buildings
         # normalise vg only for dataset created from point clouds instead of meshes
         filepath_write_candidate = filepath.with_suffix('.plm')
-        cell_complex = create_cell_complex(filepath, filepath_write_candidate=filepath_write_candidate,
+        cell_complex = create_cell_complex(filepath, filepath_write_candidate=None,
                                            prioritise_verticals=True,
                                            normalise_vg=False)
 
@@ -41,7 +42,7 @@ def reconstruct_full(dataset_paths, complexes_path=None):
 
     # extract surfaces (.obj)
     for name in complexes:
-        sdf_path = (Path('results') / 'helsinki_noise_0.001-0.005_no_bottom_model' / '{}/eval/eval/'.format(
+        sdf_path = (Path('results') / (model_name + os.path.splitext(model_postfix)[0]) / '{}/eval/eval/'.format(
             dataset_name) / name).with_suffix(
             '.xyz.npy')
         sdf_values = np.load(sdf_path)
