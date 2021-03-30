@@ -21,7 +21,8 @@ def reconstruct_full(dataset_paths, complexes_path=None):
         # prioritise_verticals for buildings
         # normalise vg only for dataset created from point clouds instead of meshes
         filepath_write_candidate = filepath.with_suffix('.plm')
-        cell_complex = create_cell_complex(filepath, filepath_write_candidate=filepath_write_candidate, prioritise_verticals=True,
+        cell_complex = create_cell_complex(filepath, filepath_write_candidate=filepath_write_candidate,
+                                           prioritise_verticals=True,
                                            normalise_vg=False)
 
         complexes.update({filepath.stem: cell_complex})
@@ -36,11 +37,12 @@ def reconstruct_full(dataset_paths, complexes_path=None):
             pickle.dump(complexes, f_complexes)
 
     # batch prediction and save sdf values (.npy)
-    predict(dataset_name)
+    predict(dataset_name, model_name, model_postfix)
 
     # extract surfaces (.obj)
     for name in complexes:
-        sdf_path = (Path('results') / 'p2s_max_model_249' / '{}/eval/eval/'.format(dataset_name) / name).with_suffix(
+        sdf_path = (Path('results') / 'helsinki_noise_0.001-0.005_no_bottom_model' / '{}/eval/eval/'.format(
+            dataset_name) / name).with_suffix(
             '.xyz.npy')
         sdf_values = np.load(sdf_path)
         extract_surface((sdf_path.parent.parent / 'reconstructed' / name).with_suffix('.obj'), complexes[name],
@@ -57,7 +59,7 @@ def reconstruct_surface(complexes_path):
 
     for name in complexes:
         # load prediction results
-        sdf_path = (Path('results') / 'p2s_max_model_249' / '{}/eval/eval/'.format(dataset_name) / name).with_suffix(
+        sdf_path = (Path('results') / model_name / '{}/eval/eval/'.format(dataset_name) / name).with_suffix(
             '.xyz.npy')
         sdf_values = np.load(sdf_path)
 
@@ -67,7 +69,10 @@ def reconstruct_surface(complexes_path):
 
 
 if __name__ == '__main__':
-    dataset_name = 'helsinki_noise_free'  # famous_dense or helsinki_noise_free
+    # famous_dense or helsinki_noise_free or helsinki_noise_0.001-0.005_no_bottom
+    dataset_name = 'helsinki_noise_0.001-0.005_no_bottom'
+    model_name = 'helsinki'  # p2s_max or helsinki
+    model_postfix = '_model_290.pth'  # _model_249.pth or _model_290.pth
 
     reconstruct_full(dataset_paths='datasets/{}/06_vertex_group/*.vg'.format(dataset_name),
                      complexes_path='results/p2s_max_model_249/{}/eval/complexes.dictionary'.format(dataset_name))

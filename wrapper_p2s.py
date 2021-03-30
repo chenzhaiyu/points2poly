@@ -6,7 +6,7 @@ import os
 from p2s.utils import points_to_surf_eval
 
 
-def predict(dataset_name, opt=None):
+def predict(dataset_name, model_name, model_postfix, opt=None):
     if not opt:
         class OPT:
             pass
@@ -16,8 +16,8 @@ def predict(dataset_name, opt=None):
         opt.outdir = 'results'
         opt.modeldir = 'p2s/models'
         opt.dataset = '{}/testset.txt'.format(dataset_name)
-        opt.models = 'p2s_max'
-        opt.modelpostfix = '_model_249.pth'
+        opt.models = model_name
+        opt.modelpostfix = model_postfix
         opt.batchSize = 101
         opt.workers = 1
         opt.cache_capacity = 1
@@ -30,7 +30,7 @@ def predict(dataset_name, opt=None):
         opt.sampling = 'full'
 
     indir_root = opt.indir
-    outdir_root = os.path.join(opt.outdir, opt.models + os.path.splitext(opt.modelpostfix)[0])
+    outdir_root = os.path.join(opt.outdir, opt.models)
     datasets = opt.dataset
     if not isinstance(datasets, list):
         datasets = [datasets]
