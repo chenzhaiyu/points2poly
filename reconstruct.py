@@ -20,7 +20,7 @@ def reconstruct_full(dataset_paths, complexes_path=None):
         filepath = Path(filepath)
 
         # prioritise_verticals for buildings
-        # normalise vg only for dataset created from point clouds instead of meshes
+        # normalise_vg for vg file in arbitrary scale (not created from normalised point cloud)
         filepath_write_candidate = filepath.with_suffix('.plm')
         cell_complex = create_cell_complex(filepath, filepath_write_candidate=None,
                                            prioritise_verticals=True,
@@ -73,7 +73,7 @@ if __name__ == '__main__':
     # famous_dense or helsinki_noise_free or helsinki_noise_0.001-0.005_no_bottom
     dataset_name = 'helsinki_noise_0.001-0.005_no_bottom'
     model_name = 'helsinki'  # p2s_max or helsinki
-    model_postfix = '_model_290.pth'  # _model_249.pth or _model_290.pth
+    model_postfix = '_model_299.pth'  # _model_249.pth or _model_290.pth or _model_299.pth
 
     reconstruct_full(dataset_paths='datasets/{}/06_vertex_group/*.vg'.format(dataset_name),
                      complexes_path='results/p2s_max_model_249/{}/eval/complexes.dictionary'.format(dataset_name))
