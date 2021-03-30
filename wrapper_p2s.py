@@ -30,7 +30,7 @@ def predict(dataset_name, model_name, model_postfix, opt=None):
         opt.sampling = 'full'
 
     indir_root = opt.indir
-    outdir_root = os.path.join(opt.outdir, opt.models)
+    outdir_root = os.path.join(opt.outdir, opt.models + os.path.splitext(opt.modelpostfix)[0])
     datasets = opt.dataset
     if not isinstance(datasets, list):
         datasets = [datasets]
