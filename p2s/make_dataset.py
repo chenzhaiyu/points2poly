@@ -283,6 +283,7 @@ def sample_blensor(base_dir, dataset_dir, blensor_bin, dir_in,
                 qy = trafo.quaternion_about_axis(beta, yaxis)
                 qz = trafo.quaternion_about_axis(gamma, zaxis)
                 q = trafo.quaternion_multiply(qx, qy)
+                q = trafo.quaternion_multiply(q, qz)
                 obj_rotation = q
 
             # extend lists of pcd output files
