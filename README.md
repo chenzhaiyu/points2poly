@@ -25,6 +25,7 @@ Follow this [instruction](https://github.com/chenzhaiyu/abspy#installation) to i
 Init `points2surf` submodule:
 ```bash
 git submodule init
+git submodule update
 ```
 
 Install the requirements listed in `points2surf/requirements.txt` with PyPI:
@@ -39,7 +40,7 @@ You can navigate to the [points2surf](https://github.com/ErlerPhilipp/points2sur
 ## TODOs
 
 - [x] Separate `abspy`/`points2surf` from `points2poly` wrappers
-- [ ] Config with hydra
+- [x] Config with hydra
 - [ ] Tutorial on how to get started
 - [ ] Host generated data
 

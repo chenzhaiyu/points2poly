@@ -1,18 +1,18 @@
 # directories and paths
 root_dir: '${hydra:runtime.cwd}'
-indir: '${root_dir}/dataset'
+dataset_name: 'helsinki_selected'
+indir: '${root_dir}/dataset/${dataset_name}'
 outdir: 'model-${model_name}_dataset-${dataset_name}'
 modeldir: '${root_dir}/points2surf/models'
 models: '${model_name}'
-dataset_name: 'helsinki_selected'
-dataset: '${root_dir}/${datasets}/testset.txt'
+dataset: '${indir}/testset.txt'
 model_name: 'helsinki_fullview'
 modelpostfix: '_400.pth'
 
 # points2surf settings
 seed: 40938661
-batchSize: 101
-workers: 1
+batchSize: 201
+workers: 8
 cache_capacity: 1
 query_grid_resolution: 256
 epsilon: 3

@@ -69,9 +69,7 @@ def reconstruct_full(cfg: DictConfig):
 
     # extract surfaces (.obj)
     for name in complexes:
-        sdf_path = (Path('results') / (cfg.model_name + os.path.splitext(cfg.modelpostfix)[0]) / '{}/eval/eval/'.format(
-            cfg.dataset_name) / name).with_suffix(
-            '.xyz.npy')
+        sdf_path = (Path(cfg.outdir) / 'rec/eval' / name).with_suffix('.xyz.npy')
         if not sdf_path.exists():
             print('skipping {}'.format(sdf_path))
             continue
@@ -99,8 +97,7 @@ def reconstruct_surface(cfg: DictConfig):
 
     for name in complexes:
         # load prediction results
-        sdf_path = (Path('results') / (cfg.model_name + os.path.splitext(cfg.modelpostfix)[0])
-                    / '{}/eval/eval/'.format(cfg.dataset_name) / name).with_suffix('.xyz.npy')
+        sdf_path = (Path(cfg.outdir) / 'rec/eval' / name).with_suffix('.xyz.npy')
         sdf_values = np.load(sdf_path)
 
         # surface extraction
