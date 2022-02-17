@@ -1,0 +1,33 @@
+# directories and paths
+root_dir: '${hydra:runtime.cwd}'
+indir: '${root_dir}/dataset'
+outdir: 'model-${model_name}_dataset-${dataset_name}'
+modeldir: '${root_dir}/points2surf/models'
+models: '${model_name}'
+dataset_name: 'helsinki_selected'
+dataset: '${root_dir}/${datasets}/testset.txt'
+model_name: 'helsinki_fullview'
+modelpostfix: '_400.pth'
+
+# points2surf settings
+seed: 40938661
+batchSize: 101
+workers: 1
+cache_capacity: 1
+query_grid_resolution: 256
+epsilon: 3
+certainty_threshold: 13
+sigma: 5
+gpu_idx: 0
+parampostfix: '_params.pth'
+sampling: 'full'
+reconstruction: true
+disable_dist: true
+
+# abspy settings
+complexes_path: null
+dataset_paths: '${root_dir}/dataset/${dataset_name}/06_vertex_group/*.vg'
+
+# hydra settings
+override hydra/job_logging: colorlog
+override hydra/hydra_logging: colorlog

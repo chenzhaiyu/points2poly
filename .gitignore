@@ -138,3 +138,6 @@ datasets/
 # macOS
 .DS_Store
 
+# data and output
+/dataset
+/outputs
