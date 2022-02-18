@@ -1,3 +1,6 @@
 [submodule "points2surf"]
 	path = points2surf
 	url = https://github.com/ErlerPhilipp/points2surf
+[submodule "abspy"]
+	path = abspy
+	url = https://github.com/chenzhaiyu/abspy

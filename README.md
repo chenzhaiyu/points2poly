@@ -16,17 +16,24 @@ Due to clutter concerns, **the core module is separately maintained in the [absp
 
 The requirements consist of two parts: one from `abspy` that provides functionalities on vertex group, cell complex, and adjacency graph; the other one from `points2surf` that facilitates occupancy estimation.
 
+Clone this repository with submodules:
+```bash
+git clone --recurse-submodules https://github.com/chenzhaiyu/points2poly
+```
+
+In case you already cloned the repository but forgot `--recurse-submodules`:
+```bash
+git submodule update --init
+```
+
 ### Requirements from `abspy` 
 
-Follow this [instruction](https://github.com/chenzhaiyu/abspy#installation) to install `abspy` with its appendencies.
+Follow this [instruction](https://github.com/chenzhaiyu/abspy#installation) to install `abspy` with its appendencies, while `abspy` itself can be easily installed via PyPI:
+```bash
+pip install abspy
+```
 
 ###  Requirements from `points2surf`
-
-Init `points2surf` submodule:
-```bash
-git submodule init
-git submodule update
-```
 
 Install the requirements listed in `points2surf/requirements.txt` with PyPI:
 
