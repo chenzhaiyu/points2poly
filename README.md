@@ -6,8 +6,9 @@
 
 **Points2Poly** is the implementation of the compact building surface reconstruction method described in this [arxiv paper](https://arxiv.org/abs/2112.13142). This implementation incorporates learnable implicit surface representation into explicitly constructed geometry.
 
+<p align="center">
 <img src="https://raw.githubusercontent.com/chenzhaiyu/points2poly/master/docs/images/teaser.png" width="680"/>
-
+</p>
 
 Due to clutter concerns, **the core module is separately maintained in the [abspy](https://github.com/chenzhaiyu/abspy) repository** (also available as a [PyPI package](https://pypi.org/project/abspy/)), while this repository acts as a wrapper with additional sources and instructions in particular for building reconstruction. **The wrapper code is being cleaned.**
 
@@ -24,6 +25,7 @@ Follow this [instruction](https://github.com/chenzhaiyu/abspy#installation) to i
 Init `points2surf` submodule:
 ```bash
 git submodule init
+git submodule update
 ```
 
 Install the requirements listed in `points2surf/requirements.txt` with PyPI:
@@ -38,7 +40,7 @@ You can navigate to the [points2surf](https://github.com/ErlerPhilipp/points2sur
 ## TODOs
 
 - [x] Separate `abspy`/`points2surf` from `points2poly` wrappers
-- [ ] Config with hydra
+- [x] Config with hydra
 - [ ] Tutorial on how to get started
 - [ ] Host generated data
 
@@ -48,7 +50,7 @@ You can navigate to the [points2surf](https://github.com/ErlerPhilipp/points2sur
 
 ## Citation
 
-If you use abspy in a scientific work, please cite:
+If you use **Points2Poly** in a scientific work, please cite:
 
 ```bibtex
 @article{chen2021reconstructing,
