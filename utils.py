@@ -8,7 +8,7 @@ Wrapper utilities for
 """
 
 import numpy as np
-from omegaconf import DictConfig, ListConfig
+from omegaconf import DictConfig
 
 from abspy import VertexGroup, CellComplex, AdjacencyGraph
 from points2surf.source import points_to_surf_eval
@@ -32,8 +32,8 @@ def sigmoid(x):
     return 1 / (1 + np.exp(-x))
 
 
-def create_cell_complex(filepath_vg, filepath_out=None, prioritise_verticals=True,
-                        normalise=False, append_bottom=False):
+def create_cell_complex(filepath_vg, filepath_out=None, theta=10 * 3.1416 / 180, epsilon=0.005,
+                        prioritise_verticals=True, normalise=False, append_bottom=False):
     """
     Create cell complex from vertex group file (.vg).
 
@@ -44,6 +44,10 @@ def create_cell_complex(filepath_vg, filepath_out=None, prioritise_verticals=Tru
     filepath_out: Path
         Filepath to save cell complex,
         either as Easy3D polyhedra mesh (.plm) or as Numpy array (.npy)
+    epsilon: float
+        Distance tolerance, primitive pair has to be less than this tolerance to be refined
+    theta: float
+        Angle tolerance, primitive pair has to be less than this tolerance to be refined
     prioritise_verticals: bool
         Prioritise vertical primitives if set True
     normalise: bool
@@ -79,7 +83,7 @@ def create_cell_complex(filepath_vg, filepath_out=None, prioritise_verticals=Tru
         additional_planes = None
 
     cell_complex = CellComplex(planes, bounds, points, additional_planes=additional_planes, build_graph=True)
-    cell_complex.refine_planes(epsilon=0.005)
+    cell_complex.refine_planes(theta=theta, epsilon=epsilon)
     cell_complex.prioritise_planes(prioritise_verticals=prioritise_verticals)
     cell_complex.construct()
 
@@ -94,7 +98,7 @@ def create_cell_complex(filepath_vg, filepath_out=None, prioritise_verticals=Tru
     return cell_complex
 
 
-def create_query_points(cell_complex, filepath_query, location='center'):
+def create_query_points(cell_complex, filepath_query, filepath_dist=None, location='center'):
     """
     Create query points from the representative of each cell in the complex.
 
@@ -104,6 +108,8 @@ def create_query_points(cell_complex, filepath_query, location='center'):
         Cell complex
     filepath_query: Path
         Filepath to write query points
+    filepath_dist: Path
+        Filepath to write distance values, can be None (therefore not writing)
     location: str
         Location of the representative point, can be 'center' or 'centroid'
     """
@@ -112,6 +118,11 @@ def create_query_points(cell_complex, filepath_query, location='center'):
     # save the query points to numpy file (e.g., under ./05_query_pts)
     filepath_query.parent.mkdir(parents=True, exist_ok=True)
     np.save(filepath_query, queries)
+
+    if filepath_dist:
+        # save the (placeholder) distance values to numpy file (e.g., under ./05_query_dist)
+        filepath_dist.parent.mkdir(parents=True, exist_ok=True)
+        np.save(filepath_dist, np.zeros((queries.shape[0])))
 
 
 def extract_surface(filepath_surface, cell_complex, sdf_values, graph_cut=True, coefficient=0.0010):

@@ -48,14 +48,17 @@ def reconstruct_full(cfg: DictConfig):
         # prioritise_verticals for buildings
         # normalise_vg for vg file in arbitrary scale (not created from normalised point cloud)
         # filepath_write_candidate = filepath.with_suffix('.plm')
-        cell_complex = create_cell_complex(filepath, filepath_out=None,
-                                           prioritise_verticals=True,
-                                           normalise=False,
-                                           append_bottom=False,)  # only for MVS point cloud without bottom
+        cell_complex = create_cell_complex(filepath,
+                                           filepath_out=None, theta=cfg.refine_theta, epsilon=cfg.refine_epsilon,
+                                           prioritise_verticals=cfg.prioritise_verticals,
+                                           normalise=cfg.normalise,
+                                           append_bottom=cfg.append_bottom,)  # only for MVS point cloud without bottom
 
         complexes.update({filepath.stem: cell_complex})
         create_query_points(cell_complex,
                             filepath_query=(filepath.parent.parent / '05_query_pts' / filepath.name).with_suffix(
+                                '.ply.npy'),
+                            filepath_dist=(filepath.parent.parent / '05_query_dist' / filepath.name).with_suffix(
                                 '.ply.npy'))
 
     # dump complexes
@@ -69,14 +72,14 @@ def reconstruct_full(cfg: DictConfig):
 
     # extract surfaces (.obj)
     for name in complexes:
-        sdf_path = (Path(cfg.outdir) / 'rec/eval' / name).with_suffix('.xyz.npy')
+        sdf_path = (Path(cfg.outdir) / 'eval/eval' / name).with_suffix('.xyz.npy')
         if not sdf_path.exists():
             print('skipping {}'.format(sdf_path))
             continue
 
         sdf_values = np.load(sdf_path)
-        extract_surface((sdf_path.parent.parent / 'reconstructed' / name).with_suffix('.obj'), complexes[name],
-                        sdf_values, graph_cut=True, coefficient=0.001)
+        extract_surface((Path(cfg.result_dir) / name).with_suffix('.obj'), complexes[name],
+                        sdf_values, graph_cut=True, coefficient=cfg.coefficient)
 
 
 @hydra.main(config_path='./conf', config_name='config')
@@ -97,12 +100,12 @@ def reconstruct_surface(cfg: DictConfig):
 
     for name in complexes:
         # load prediction results
-        sdf_path = (Path(cfg.outdir) / 'rec/eval' / name).with_suffix('.xyz.npy')
+        sdf_path = (Path(cfg.outdir) / 'eval/eval' / name).with_suffix('.xyz.npy')
         sdf_values = np.load(sdf_path)
 
         # surface extraction
-        extract_surface((sdf_path.parent.parent / 'reconstructed' / name).with_suffix('.obj'), complexes[name],
-                        sdf_values, graph_cut=True, coefficient=0.0010)
+        extract_surface((Path(cfg.result_dir) / name).with_suffix('.obj'), complexes[name],
+                        sdf_values, graph_cut=True, coefficient=cfg.coefficient)
 
 
 if __name__ == '__main__':

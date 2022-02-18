@@ -8,6 +8,17 @@ models: '${model_name}'
 dataset: '${indir}/testset.txt'
 model_name: 'helsinki_fullview'
 modelpostfix: '_400.pth'
+complexes_path: null
+dataset_paths: '${root_dir}/dataset/${dataset_name}/06_vertex_group/*.vg'
+result_dir: '${outdir}/reconstructed'
+
+# abspy settings
+normalise: false
+append_bottom: false
+prioritise_verticals: true
+coefficient: 0.0010
+refine_epsilon: 0.005
+refine_theta: 0.1745  # 10 * 3.1416 / 180
 
 # points2surf settings
 seed: 40938661
@@ -21,12 +32,7 @@ sigma: 5
 gpu_idx: 0
 parampostfix: '_params.pth'
 sampling: 'full'
-reconstruction: true
-disable_dist: true
-
-# abspy settings
-complexes_path: null
-dataset_paths: '${root_dir}/dataset/${dataset_name}/06_vertex_group/*.vg'
+reconstruction: false
 
 # hydra settings
 override hydra/job_logging: colorlog
