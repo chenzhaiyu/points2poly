@@ -10,7 +10,8 @@ model_name: 'helsinki_fullview'
 modelpostfix: '_400.pth'
 complexes_path: null
 dataset_paths: '${root_dir}/dataset/${dataset_name}/06_vertex_group/*.vg'
-result_dir: '${outdir}/reconstructed'
+result_dir: '${outdir}/reconstructed'  # change accordingly
+gt_dir: '${root_dir}/dataset/${dataset_name}/03_meshes'
 
 # abspy settings
 normalise: false
@@ -33,6 +34,8 @@ gpu_idx: 0
 parampostfix: '_params.pth'
 sampling: 'full'
 reconstruction: false
+eval_samples: 10000
+eval_csv: 'hausdorff_dist_pred_rec.csv'
 
 # hydra settings
 override hydra/job_logging: colorlog
