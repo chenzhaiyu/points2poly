@@ -1,17 +1,22 @@
 # directories and paths
 root_dir: '${hydra:runtime.cwd}'
-dataset_name: 'helsinki_selected'
-indir: '${root_dir}/dataset/${dataset_name}'
+indir: '${root_dir}/datasets/${dataset_name}'
 outdir: 'model-${model_name}_dataset-${dataset_name}'
-modeldir: '${root_dir}/points2surf/models'
+modeldir: '${root_dir}/models'
 models: '${model_name}'
-dataset: '${indir}/testset.txt'
 model_name: 'helsinki_fullview'
-modelpostfix: '_400.pth'
+modelpostfix: '_model.pth'
 complexes_path: null
-dataset_paths: '${root_dir}/dataset/${dataset_name}/06_vertex_group/*.vg'
-result_dir: '${outdir}/reconstructed'  # change accordingly
-gt_dir: '${root_dir}/dataset/${dataset_name}/03_meshes'
+datadir: '${root_dir}/datasets'
+dataset_name: 'helsinki_mini'
+dataset: '${indir}/testset.txt'
+dataset_paths: '${root_dir}/datasets/${dataset_name}/06_vertex_group/*.vg'
+result_dir: '${outdir}/reconstructed'  # change accordingly for evaluation
+gt_dir: '${root_dir}/datasets/${dataset_name}/03_meshes'
+
+# download settings
+url_datasets: {'helsinki_mini': 'https://drive.google.com/uc?export=download&id=1mzbNNrGtbbbu7-mG2FrRRRdDZ9P5jDDK'}
+url_models: {'helsinki_fullview': 'https://drive.google.com/uc?export=download&id=1t1yQ7b0mME6EBlEa1CLAHJC_pcKQxZkW'}
 
 # abspy settings
 normalise: false
@@ -30,7 +35,7 @@ query_grid_resolution: 256
 epsilon: 3
 certainty_threshold: 13
 sigma: 5
-gpu_idx: 0
+gpu_idx: -1 #[0]  # set < 0 to use CPU
 parampostfix: '_params.pth'
 sampling: 'full'
 reconstruction: false

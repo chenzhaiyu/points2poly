@@ -130,14 +130,10 @@ dmypy.json
 .idea/
 *.zip
 *.pth
-results/
-p2s/models/
-logs/
-datasets/
 
 # macOS
 .DS_Store
 
 # data and output
-/dataset
+/datasets
 /outputs
