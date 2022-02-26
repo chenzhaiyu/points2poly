@@ -35,7 +35,7 @@ query_grid_resolution: 256
 epsilon: 3
 certainty_threshold: 13
 sigma: 5
-gpu_idx: -1 #[0]  # set < 0 to use CPU
+gpu_idx: [0]  # set < 0 to use CPU
 parampostfix: '_params.pth'
 sampling: 'full'
 reconstruction: false

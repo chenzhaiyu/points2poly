@@ -44,11 +44,32 @@ pip install -r points2surf/requirements.txt
 For training the neural network, make sure CUDA is available and enabled.
 You can navigate to the [points2surf](https://github.com/ErlerPhilipp/points2surf) repository for more details on its requirements.
 
+## Getting started
+
+### Reconstrction demo with pre-trained models 
+
+Download a mini dataset (point clouds, meshes, etc.) that consists of 8 buildings from the [Helsinki 3D city models](https://kartta.hel.fi/3d/), and a pre-trained full-view model:
+
+```bash
+python download.py dataset_name='helsinki_mini' model_name='helsinki_fullview'
+```
+
+Run reconstruction on the mini dataset:
+```bash
+python reconstruct.py dataset_name='helsinki_mini' model_name='helsinki_fullview'
+```
+
+Reconstructed buildings are saved to `outputs/{YYYY-MM-DD}/{HH-MM-SS}/{model_name-dataset_name}/reconstructed`.
+
+### Custom dataset
+
+Prepare (building) meshes and place them under `datasets/{dataset_name}` that mimic the structure of the provided data. Refer to this [`instruction`](https://github.com/ErlerPhilipp/points2surf/tree/2af6e0facf58422ed12e0c676c70199cd0dfbb43#make-your-own-datasets) for creating training data of compatible format through simulation. Train the `points2surf` neural network on the custom dataset for occupancy estimation. After training, run reconstruction with the trained model with `reconstruct.py`, and then evaluate the reconstruction results with `evaluate.py`.
+
 ## TODOs
 
 - [x] Separate `abspy`/`points2surf` from `points2poly` wrappers
 - [x] Config with hydra
-- [ ] Tutorial on how to get started
+- [x] Short tutorial on how to get started
 - [ ] Host generated data
 
 ## License
