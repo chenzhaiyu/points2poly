@@ -12,9 +12,9 @@
 
 Due to clutter concerns, **the core module is separately maintained in the [*abspy*](https://github.com/chenzhaiyu/abspy) repository** (also available as a [PyPI package](https://pypi.org/project/abspy/)), while this repository acts as a wrapper with additional sources and instructions in particular for building reconstruction. **The wrapper code is being cleaned.**
 
-## Requirements
+## Prerequisites
 
-The requirements consist of two parts: one from `abspy` that provides functionalities on vertex group, cell complex, and adjacency graph; the other one from `points2surf` that facilitates occupancy estimation.
+The prerequisites consist of two parts: one from `abspy` that provides functionalities on vertex group, cell complex, and adjacency graph; the other one from `points2surf` that facilitates occupancy estimation.
 
 Clone this repository with submodules:
 ```bash
