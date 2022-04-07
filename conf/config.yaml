@@ -21,7 +21,7 @@ url_models: {'helsinki_fullview': 'https://drive.google.com/uc?export=download&i
 # abspy settings
 normalise: false
 append_bottom: false
-prioritise_verticals: true
+prioritise_verticals: false
 coefficient: 0.0010
 refine_epsilon: 0.005
 refine_theta: 0.1745  # 10 * 3.1416 / 180
