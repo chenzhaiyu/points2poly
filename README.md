@@ -4,7 +4,7 @@
 
 ## Introduction
 
-***Points2Poly*** is the implementation of the compact building surface reconstruction method described in this [arxiv paper](https://arxiv.org/abs/2112.13142). This implementation incorporates learnable implicit surface representation into explicitly constructed geometry.
+***Points2Poly*** is an implementation of the paper [*Reconstructing Compact Building Models from Point Clouds Using Deep Implicit Fields*](https://www.sciencedirect.com/science/article/pii/S0924271622002611). This implementation incorporates learnable implicit surface representation into explicitly constructed geometry.
 
 <p align="center">
 <img src="https://raw.githubusercontent.com/chenzhaiyu/points2poly/master/docs/images/teaser.png" width="680"/>
@@ -41,8 +41,8 @@ Install the requirements listed in `points2surf/requirements.txt` with PyPI:
 pip install -r points2surf/requirements.txt
 ```
 
-For training the neural network, make sure CUDA is available and enabled.
-You can navigate to `points2surf/README.md` for more details on its requirements.
+For training, make sure CUDA is available and enabled.
+Navigate to `points2surf/README.md` for more details on its requirements.
 
 ## Getting started
 
@@ -62,8 +62,7 @@ python reconstruct.py dataset_name='helsinki_mini' model_name='helsinki_fullview
 Evaluate the reconstruction results by Hausdorff distance:
 
 ```bash
-# change {dir_reconstructed} to `outputs/{YYYY-MM-DD}/{HH-MM-SS}/{model_name-dataset_name}/reconstructed`
-# where the reconstructed buildings are saved
+# change {dir_reconstructed} to 'outputs/.../reconstructed' where the reconstructed buildings are saved
 python evaluate.py dataset_name='helsinki_mini', result_dir={dir_reconstructed}
 ```
 
@@ -71,17 +70,17 @@ The reconstructed buildings can be found under `{dir_reconstructed}`.
 
 ### Custom dataset
 
-#### Reconstruction from your point clouds
+#### Reconstruction from your own point clouds
 
-Convert your point clouds into NumPy binary format (`.npy`). Place your point cloud files (e.g., `.ply`, `.obj`, `.stl` and `.off`) under `./datasets/{dataset_name}/00_base_pc` then run [`points2surf/make_pc_dataset.py`](https://github.com/ErlerPhilipp/points2surf/blob/master/make_pc_dataset.py), or manually do the conversion.
+* Convert point clouds into NumPy binary format (`.npy`). Place your point cloud files (e.g., `.ply`, `.obj`, `.stl` and `.off`) under `./datasets/{dataset_name}/00_base_pc` then run [`points2surf/make_pc_dataset.py`](https://github.com/ErlerPhilipp/points2surf/blob/master/make_pc_dataset.py), or manually do the conversion.
 
-Extract planar primitives from your (normalised) point clouds with [Mapple](https://3d.bk.tudelft.nl/liangliang/software.html). You can either build Mapple as an application from [Easy3D](https://github.com/LiangliangNan/Easy3D), or directly download one of the [executables](https://github.com/LiangliangNan/Easy3D/releases/tag/v2.4.7). In Mapple, you can use `Point Cloud` - `RANSAC primitive extraction` to extract planar primitives, and then use `Point Cloud` - `Save` to save the extraction results (`.vg`) into `./datasets/{dataset_name}/06_vertex_group`.
+* Extract planar primitives from point clouds with [Mapple](https://3d.bk.tudelft.nl/liangliang/software.html). You can either build Mapple as an application from [Easy3D](https://github.com/LiangliangNan/Easy3D), or directly download one of the [executables](https://github.com/LiangliangNan/Easy3D/releases/tag/v2.4.7). In Mapple, use `Point Cloud` - `RANSAC primitive extraction` to extract planar primitives, and then save the results (`.vg` or `.bvg`) into `./datasets/{dataset_name}/06_vertex_group`.
 
-Then you should be able to reconstruct your point clouds the same way you did with the demo data. Notice that, however, you might need to retrain a model that conforms to your data's characteristics.
+* Then you should be able to reconstruct your point clouds the same way you did with the demo data. Notice that, however, you might need to retrain a model that conforms to your data's characteristics.
 
 #### Make your training data
 
-Prepare (building) meshes and place them under `datasets/{dataset_name}` that mimic the structure of the provided data. Refer to this [instruction](https://github.com/ErlerPhilipp/points2surf#make-your-own-datasets) for creating points2surf-compatible training data through [BlenSor](https://www.blensor.org/) simulation. 
+Prepare meshes and place them under `datasets/{dataset_name}` that mimic the structure of the provided data. Refer to this [instruction](https://github.com/ErlerPhilipp/points2surf#make-your-own-datasets) for creating training data through [BlenSor](https://www.blensor.org/) simulation. 
 
 ## TODOs
 
@@ -95,18 +94,23 @@ Prepare (building) meshes and place them under `datasets/{dataset_name}` that mi
 [MIT](https://raw.githubusercontent.com/chenzhaiyu/points2poly/main/LICENSE)
 
 ## Acknowledgement
-The implementation of *Points2Poly* has greatly benefited from [Points2Surf](https://github.com/ErlerPhilipp/points2surf). In addition, the implementation of the *abspy* submodule is backed by existing great open-source libraries, such as [SageMath](https://www.sagemath.org/), [NetworkX](https://networkx.org/), and [Easy3D](https://github.com/LiangliangNan/Easy3D).
+The implementation of *Points2Poly* has greatly benefited from [Points2Surf](https://github.com/ErlerPhilipp/points2surf). In addition, the implementation of the *abspy* submodule is backed by great open-source libraries inlcuding [SageMath](https://www.sagemath.org/), [NetworkX](https://networkx.org/), and [Easy3D](https://github.com/LiangliangNan/Easy3D).
 
 ## Citation
 
-If you use *Points2Poly* in a scientific work, please consider citing it:
+If you use *Points2Poly* in a scientific work, please consider citing the paper:
 
 ```bibtex
-@article{chen2021reconstructing,
-  title={Reconstructing Compact Building Models from Point Clouds Using Deep Implicit Fields},
-  author={Chen, Zhaiyu and Khademi, Seyran and Ledoux, Hugo and Nan, Liangliang},
-  journal={arXiv preprint arXiv:2112.13142},
-  year={2021}
+@article{chen2022points2poly,
+  title = {Reconstructing compact building models from point clouds using deep implicit fields},
+  journal = {ISPRS Journal of Photogrammetry and Remote Sensing},
+  volume = {194},
+  pages = {58-73},
+  year = {2022},
+  issn = {0924-2716},
+  doi = {https://doi.org/10.1016/j.isprsjprs.2022.09.017},
+  url = {https://www.sciencedirect.com/science/article/pii/S0924271622002611},
+  author = {Zhaiyu Chen and Hugo Ledoux and Seyran Khademi and Liangliang Nan}
 }
 ```
 
