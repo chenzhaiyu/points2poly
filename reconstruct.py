@@ -29,7 +29,7 @@ from omegaconf import DictConfig
 from utils import create_cell_complex, create_query_points, extract_surface, infer_sdf
 
 
-@hydra.main(config_path='./conf', config_name='config')
+@hydra.main(config_path='./conf', config_name='config', version_base='1.2')
 def reconstruct_full(cfg: DictConfig):
     """
     Full reconstruction pipeline starting from point clouds.
@@ -82,7 +82,7 @@ def reconstruct_full(cfg: DictConfig):
                         sdf_values, graph_cut=True, coefficient=cfg.coefficient)
 
 
-@hydra.main(config_path='./conf', config_name='config')
+@hydra.main(config_path='./conf', config_name='config', version_base='1.2')
 def reconstruct_surface(cfg: DictConfig):
     """
     Reconstruction of surface extraction from cell complexes and SDF predictions.

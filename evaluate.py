@@ -14,7 +14,7 @@ from omegaconf import DictConfig
 from points2surf.source.base import evaluation
 
 
-@hydra.main(config_path='./conf', config_name='config')
+@hydra.main(config_path='./conf', config_name='config', version_base='1.2')
 def evaluate_hausdorff_dist(cfg: DictConfig):
     """
     Evaluate Hausdorff distance between reconstructed and GT models.

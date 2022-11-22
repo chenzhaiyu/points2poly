@@ -43,9 +43,10 @@ eval_samples: 10000
 eval_csv: 'hausdorff_dist_pred_rec.csv'
 
 # hydra settings
-override hydra/job_logging: colorlog
-override hydra/hydra_logging: colorlog
 hydra:
   run:
     dir: '${outdir}'
   verbose: false
+defaults:
+  - override hydra/job_logging: colorlog
+  - override hydra/hydra_logging: colorlog

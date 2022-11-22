@@ -43,7 +43,7 @@ def my_hook(t):
     return update_to
 
 
-@hydra.main(config_path='./conf', config_name='config')
+@hydra.main(config_path='./conf', config_name='config', version_base='1.2')
 def download(cfg: DictConfig):
     """
     Download datasets and/or models from public urls.

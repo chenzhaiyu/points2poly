@@ -44,6 +44,12 @@ pip install -r points2surf/requirements.txt
 For training, make sure CUDA is available and enabled.
 Navigate to [`points2surf/README.md`](https://github.com/ErlerPhilipp/points2surf) for more details on its requirements.
 
+In addition, install dependencies for logging:
+
+```bash
+pip install -r requirements.txt
+```
+
 ## Getting started
 
 ### Reconstrction demo 
