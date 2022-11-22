@@ -1,7 +1,7 @@
 # directories and paths
 root_dir: '${hydra:runtime.cwd}'
 indir: '${root_dir}/datasets/${dataset_name}'
-outdir: 'model-${model_name}_dataset-${dataset_name}'
+outdir: '${root_dir}/outputs/${dataset_name}'
 modeldir: '${root_dir}/models'
 models: '${model_name}'
 model_name: 'helsinki_fullview'
@@ -11,7 +11,7 @@ datadir: '${root_dir}/datasets'
 dataset_name: 'helsinki_mini'
 dataset: '${indir}/testset.txt'
 dataset_paths: '${root_dir}/datasets/${dataset_name}/06_vertex_group/*.vg'
-result_dir: '${outdir}/reconstructed'  # change accordingly for evaluation
+result_dir: '${outdir}/reconstructed'
 gt_dir: '${root_dir}/datasets/${dataset_name}/03_meshes'
 
 # download settings
@@ -45,3 +45,7 @@ eval_csv: 'hausdorff_dist_pred_rec.csv'
 # hydra settings
 override hydra/job_logging: colorlog
 override hydra/hydra_logging: colorlog
+hydra:
+  run:
+    dir: '${outdir}'
+  verbose: false
