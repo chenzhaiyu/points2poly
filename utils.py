@@ -9,27 +9,10 @@ Wrapper utilities for
 
 import numpy as np
 from omegaconf import DictConfig
+from scipy.special import expit
 
 from abspy import VertexGroup, CellComplex, AdjacencyGraph
 from points2surf.source import points_to_surf_eval
-
-
-def sigmoid(x):
-    """
-    Sigmoid function.
-
-    Parameters
-    ----------
-    x: float
-        Scalar input
-
-    Returns
-    -------
-    as_float: float
-        Value of sigmoid
-    """
-    # can safely ignore RuntimeWarning: overflow encountered in exp
-    return 1 / (1 + np.exp(-x))
 
 
 def create_cell_complex(filepath_vg, filepath_out=None, theta=10 * 3.1416 / 180, epsilon=0.005,
@@ -153,7 +136,7 @@ def extract_surface(filepath_surface, cell_complex, sdf_values, graph_cut=True, 
 
         # fidelity term
         volumes = cell_complex.volumes(multiplier=10e5)
-        weights_dict = adjacency_graph.to_dict(sigmoid(sdf_values * volumes))
+        weights_dict = adjacency_graph.to_dict(expit(sdf_values * volumes))
 
         # graph partitioning
         attribute = 'area_overlap'
