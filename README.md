@@ -73,6 +73,10 @@ python evaluate.py dataset_name='helsinki_mini'
 
 The reconstructed building models and statistics can be found under `./outputs/helsinki_mini/reconstructed`.
 
+### Helsinki dataset
+
+Download the Helsinki dataset from [OneDrive](https://1drv.ms/f/s!AseUjD457t0Sgtptq5PZlrPBwu8N_A?e=mvtSrw), including meshes, point clouds, and queries with distances.
+
 ### Custom dataset
 
 #### Reconstruction from custom point clouds
@@ -92,7 +96,7 @@ Prepare meshes and place them under `datasets/{dataset_name}` that mimic the str
 - [x] Separate `abspy`/`points2surf` from `points2poly` wrappers
 - [x] Config with hydra
 - [x] Short tutorial on how to get started
-- [ ] Host generated data
+- [x] Host generated data
 
 ## License
 
