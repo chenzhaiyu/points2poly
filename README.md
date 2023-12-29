@@ -30,6 +30,10 @@ git submodule update --init
 
 Follow the [instruction](https://github.com/chenzhaiyu/abspy#installation) to install `abspy` with its dependencies, while `abspy` itself can be easily installed via [PyPI](https://pypi.org/project/abspy/):
 ```bash
+# local version (stable)
+pip install ./abspy
+
+# PyPI version (latest)
 pip install abspy
 ```
 
@@ -52,7 +56,7 @@ pip install -r requirements.txt
 
 ## Getting started
 
-### Reconstrction demo 
+### Reconstruction demo 
 
 Download a mini dataset of 6 buildings from the [Helsinki 3D city models](https://kartta.hel.fi/3d/), and a pre-trained full-view model:
 

@@ -43,29 +43,27 @@ def create_cell_complex(filepath_vg, filepath_out=None, theta=10 * 3.1416 / 180,
     as_object: CellComplex object
         Cell complex
     """
-    # load planes and bounds from vg data of a (complete) point cloud
+    # load point cloud as vertex group
     vertex_group = VertexGroup(filepath_vg)
 
     # normalise only if the dataset is created from point clouds instead of meshes
     if normalise:
         vertex_group.normalise_to_centroid_and_scale()
 
-    planes, bounds, points = np.array(vertex_group.planes), np.array(vertex_group.bounds), np.array(
-        vertex_group.points_grouped, dtype=object)
-
     # construct cell complex and extract the cell centers as query points
     if append_bottom:
-        additional_planes = [[0, 0, 1, -bounds[:, 0, 2].min()],  # bottom
-                             # [0, 0, 1, -bounds[:, 1, 2].max()],  # top
-                             # [0, 0, 1, -bounds[:, 0, 0].min()],  # left
-                             # [0, 0, 1, -bounds[:, 1, 0].max()],  # right
-                             # [0, 0, 1, -bounds[:, 0, 1].min()],  # front
-                             # [0, 0, 1, -bounds[:, 1, 1].max()],  # back
+        additional_planes = [[0, 0, 1, -vertex_group.aabbs[:, 0, 2].min()],  # bottom
+                             # [0, 0, 1, -vertex_group.aabbs[:, 1, 2].max()],  # top
+                             # [0, 0, 1, -vertex_group.aabbs[:, 0, 0].min()],  # left
+                             # [0, 0, 1, -vertex_group.aabbs[:, 1, 0].max()],  # right
+                             # [0, 0, 1, -vertex_group.aabbs[:, 0, 1].min()],  # front
+                             # [0, 0, 1, -vertex_group.aabbs[:, 1, 1].max()],  # back
                              ]
     else:
         additional_planes = None
 
-    cell_complex = CellComplex(planes, bounds, points, additional_planes=additional_planes, build_graph=True)
+    cell_complex = CellComplex(vertex_group.planes, vertex_group.aabbs, vertex_group.obbs, vertex_group.points_grouped,
+                               additional_planes=additional_planes, build_graph=True)
     cell_complex.refine_planes(theta=theta, epsilon=epsilon)
     cell_complex.prioritise_planes(prioritise_verticals=prioritise_verticals)
     cell_complex.construct()
